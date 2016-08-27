@@ -76,6 +76,7 @@ class LUTPanel(bpy.types.Panel):
             row.operator("lut.iterate")
             col.operator("lut.save")
         
+        
 class ViewPanel(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
@@ -94,6 +95,7 @@ class ViewPanel(bpy.types.Panel):
         
         row = layout.row()
         row.prop(bpy.context.scene, "lut_color")
+        
         
 class saveOperator(bpy.types.Operator):
  
@@ -141,6 +143,7 @@ class saveOperator(bpy.types.Operator):
         else:
             return{'FINISHED'}   
         
+        
 class updateOperator(bpy.types.Operator):
  
     bl_idname = "lut.update"
@@ -171,6 +174,7 @@ class updateOperator(bpy.types.Operator):
         bpy.context.scene.frame_current = currentframe
         return {'FINISHED'}
     
+    
 class selectDirectoryOperator(bpy.types.Operator):
     bl_idname = "lut.selectdirectory"
     bl_label = "File"
@@ -185,6 +189,7 @@ class selectDirectoryOperator(bpy.types.Operator):
         print (path)
         print (path)
         return {'FINISHED'}    
+    
     
 class modalUpdateOperator(bpy.types.Operator):
     bl_idname = "lut.modal_update"
@@ -216,6 +221,7 @@ class modalUpdateOperator(bpy.types.Operator):
         self.execute(context)
         return {'RUNNING_MODAL'}
         
+        
 class resetOperator(bpy.types.Operator):
  
     bl_idname = "lut.reset"
@@ -226,6 +232,7 @@ class resetOperator(bpy.types.Operator):
             coordinates = i.name.split(',')
             i.location = (float(coordinates[0]),float(coordinates[1]),float(coordinates[2]))
         return {'FINISHED'}
+
 
 class iterateOperator(bpy.types.Operator):
  
@@ -313,6 +320,7 @@ class iterateOperator(bpy.types.Operator):
             
         return {'FINISHED'}
 
+
 class setupOperator(bpy.types.Operator):
  
     bl_idname = "lut.setup"
@@ -365,10 +373,6 @@ class setupOperator(bpy.types.Operator):
                 except:
                     print("No LUT present.")
                     return {'FINISHED'}
-                
-            
-            
-
 
             #Setup LUT File -> hinterher mode a und werte übernehmen.
             if (lutexists == False):
@@ -451,6 +455,7 @@ class setupOperator(bpy.types.Operator):
         
         return {'FINISHED'}
 
+
 class curvesOperator(bpy.types.Operator):
  
     bl_idname = "lut.curves"
@@ -460,7 +465,6 @@ class curvesOperator(bpy.types.Operator):
         scene = bpy.context.scene
         tree = scene.node_tree
         node = bpy.context.selected_nodes
-        
         
         if (len(node) > 1):
         
@@ -520,6 +524,7 @@ class curvesOperator(bpy.types.Operator):
         
         return {'FINISHED'}
     
+    
 def register():
     bpy.utils.register_class( iterateOperator )
     bpy.utils.register_class( curvesOperator )
@@ -531,6 +536,7 @@ def register():
     bpy.utils.register_class( updateOperator ) 
     bpy.utils.register_class( resetOperator ) 
     bpy.utils.register_class( ViewPanel ) 
+    
     
 def unregister():
     bpy.utils.unregister_class( iterateOperator )

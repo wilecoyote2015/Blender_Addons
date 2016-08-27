@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# TODO: Correctly handle image sequences which start at a frame number >0. The correct offset has to be set.
+
 # NEWS
 
 # Fixed issues with Blender 2.68 and up.

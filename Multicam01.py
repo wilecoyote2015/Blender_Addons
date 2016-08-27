@@ -19,7 +19,7 @@
 
 bl_info = {
     "name": "Multicam Tools",
-    "description": "Change Multicam sources with operators",
+    "description": "Change Multicam sources with operators. This is intended for shortcut assignment.",
     "author": "Björn Sonnenschein",
     "version": (0, 1),
     "blender": (2, 64, 0),
