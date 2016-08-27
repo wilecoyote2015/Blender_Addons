@@ -64,6 +64,28 @@ Please make sure that the marker is tracked/keyframed for every frame in that ra
 <p>Now a second trackpoint is created. Simply use it for 2d stabilization instead of the original track.
 You can also repeat the procedure for a second track point and use it for rotation stabilization!</p>
 
+<h1>
+<a id="natronizer" class="anchor" href="#natronizer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Natronizer</h1>
+
+<p>Because it is my favorite application for editing Videos, but the internal (quite powerful) Node compositor is too slow for Visual Effects Work and complex color grading, I have decided to use Natron for that and thus try to integrate it into the Blender editing workflow.</p>
+
+<p>It works in a similiar way as the edit Strip with Blender compositor Addon:
+You will find a new Section in the Sequencer panel w named "Natronizer". Make sure to enter the correct Paths to your Natron and NatronRenderer executables.</p>
+
+<ul>
+<li>Clicking in Natronize will create an Imagestrip, which is associated with a natron Project, above every selected movie Strip. Natron will open and then close immediately when the Natronize Button is pressed. The reason behind this is that Natron is only started to setup the Natron project for the strip. As soon as that is done Natron is closed and the new Imagesequence Strip should appear in the Blender Timeline.
+The Edit Button opens Natron for editing the Project.</li>
+<li>If one of those Imagestrips is selected, the "Edit" Button opens a new Natron window where you can edit the composition. Save the Project to apply the changes.</li>
+<li>The render Preview button will render all selected Natron associated Image Strips so that get a preview of the Strips in the Blender Sequencer.</li>
+<li>If the live preview checkbox is activated, natron Image Strips will be rendered for the current frame on framechange. That means that means that, even without having used the render Preview button, the Natron Image Strips will show the composition Result from Natron. There is also an intelligent Caching system: Frames are only re-rendered if the natron Project got changed and otherwise already rendered Frames are used. So if the Checkbox is activated, also Frames of already rendered Strips via render Preview won't be rendered again so you get smooth playback wherever it is possible.
+When the Project is rendered, all Natron Image Srips are Prerendered before the the actual rendering starts.</li>
+</ul>
+
+<p>You may enter a Natron plugin ID into the custom Plugin box. That plugin will be inserted into a new Composition which is created by the Natronize operator.
+Leave the field Blank to disable this.</p>
+
+<p>Please notice: While frames or strips are rendered (either using the render Preciew Button, before Rendering or with live Preview) Blender will freeze until the rendering is finished. This is not an error. To track the rendering progress, start Blender from console where Natron outputs its messages.</p>
+
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/wilecoyote2015/Blender_Addons">Blender addons</a> is maintained by <a href="https://github.com/wilecoyote2015">wilecoyote2015</a>.</span>
 
