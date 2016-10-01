@@ -24,7 +24,18 @@
 
 <p>The color grading and compositing features in the VSE are rudimentary while Blender comes with a great nodal compositor that cannot be used in the sequencer directly. What a pity!
 This addon tries to unleash Blender's great grading capabilities by offering a way to grade sequencer clips in the nodal compositor.
-A more detailed description will follow!</p>
+The initial Addon had been written by TMW in the Blender Artists community and for some time, Carlos Padial and I are trying to further improve the script. You can follow the Development <a href="https://blenderartists.org/forum/showthread.php?221567-Edit-strip-with-compositor">here</a>.</p>
+<p><b>Usage:</b> The addon's interface provides two menus: The first one is located in the Sequencer's panel and provides Buttons to create compositor strips, which are newly created scenes with a prebuilt node setup, from existing video or image strips in the timeline and to jump to the compositor in order to edit the created compositions. The second menu is located in the node compositor panel. It provides buttons to return to the video editing view and to open a compositor strip from the sequencer timeline. 
+After a klick on the "Set Masterscene" button in the addon's menu in the sequencer panel, which sets the current scene as the scene where the video timeline of your project is located, the main controls appear. It is recommended to give "Show Options" a tick and set the compositing and editing screens to the screen layouts you prefer for video editing and compositing. All options provide tooltips on mouse hover explaining their purpose.
+The Addon is designed for two different workflows:
+
+<ul>
+<li>Single monitor setup: After using the "Create Comp from Strip" button to create composite strips of all selected videos, select the composite strip you want to edit and press the "Edit Composition" button to jump to the compositor and after editing the composition, use the "Get Back" button to return to the sequencer view.</li>
+<li>Dual monitor setup: Use window -> duplicate window in Blender's top panel to create a new Blender window. Use one window on the first monitor to display the sequencer view and use the other one to display the compositing view. After using the "Create Comp from Strip" button to create composite strips of all selected videos, select the composite strip you want to edit in the sequencer view and then use the "Edit Composite" button in the node editor panel in the compositor view to open the selected composite strip.</li>
+</ul>
+
+It is recommended to disable the OpenGL preview in the sequence viewer so that live preview for composite scripts is provided in the sequencer.
+</p>
 
 <h1>
 <a id="sun-tools" class="anchor" href="#sun-tools" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sun Tools</h1>
