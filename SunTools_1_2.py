@@ -646,7 +646,7 @@ class Insert_Strip_Masterscene(bpy.types.Operator):
     
     bl_idname = "moviemanager.insert_strip_masterscene"
     bl_label = "Insert into editing scene"
-    bl_description = "Insert the selected File into the Timeline of the Editing Scene"
+    bl_description = "Insert the selected Strip into the Timeline of the Editing Scene"
     
     def invoke(self, context, event):
         
