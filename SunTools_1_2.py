@@ -332,53 +332,36 @@ class Hide_Operator (bpy.types.Operator):
     
     def invoke (self, context, event):
         for i in bpy.data.scenes:
-            path = i.source_path 
-            #print(i.name)
-            if (path != "none"):
-                split = path.split("/")
-                length = len(split)
-                dir = ""
-                
-                for m in range (0, length - 1):
-                    dir = dir + split[m] + "/"
-                    
-                file = split[(length - 1)]
-                    
-                changed = False
-                #print(dir)
-                #print(path)
-                #print(file)
-                if (file[0] == "." and i.good_clip == True):
-                    newname = file[1:]
-                    changed = True
+            source_path = i.source_path
+            if (source_path != "none"):
+                self.hide_file(source_path)
 
-                if (file[0] != "." and i.good_clip == False):
-                    newname = "." + file
-                    changed = True
-                    
-                if (changed == True):
-                    os.chdir(dir)
-                    os.rename(file, newname)
-                    #print(file)
-                    #print(newname)
-                    #print("once")
-                    for j in bpy.data.scenes:
-                        
-                        if (j.source_path == path):
-                            j.source_path = dir + newname
-                        
-                        try:
-                            for k in j.sequence_editor.sequences_all:
-                                if (k.filepath == bpy.path.relpath(path)):
-                                    k.filepath = bpy.path.relpath(dir + newname)
-                                         
-                        except:
-                            print("hadn't a sequencer. poor little scene!")
-                    
-                
-        return {'FINISHED'}  
-        
-    
+        return {'FINISHED'}
+
+    def hide_file(self, filepath):
+        path_directory, filename = os.path.split(filepath)
+
+        changed = False
+        if (filename[0] == "." and i.good_clip == True):
+            filename_new = filename[1:]
+            changed = True
+        elif (filename[0] != "." and i.good_clip == False):
+            filename_new = "." + filename
+            changed = True
+        if (changed == True):
+            filepath_new = path_directory + filename_new
+            os.rename(filepath, filepath_new)
+
+            for sequence_scene in bpy.data.scenes:
+                if (sequence_scene.source_path == filepath):
+                    sequence_scene.source_path = filepath_new
+                try:
+                    for sequence in sequence_scene.sequence_editor.sequences_all:
+                        if (sequence.filepath == bpy.path.relpath(filepath)):
+                            sequence.filepath = bpy.path.relpath(filepath_new)
+                except:
+                    print("hadn't a sequencer. poor little scene!")
+
 class Proxy_Operator(bpy.types.Operator): 
      
     bl_idname = "moviemanager.proxy"
