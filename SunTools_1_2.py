@@ -48,6 +48,15 @@ def act_strip(context):
     except AttributeError:
         return None
 
+def get_masterscene():
+    masterscene = None
+
+    for i in bpy.data.scenes:
+        if (i.timeline == True):
+            masterscene = i
+            break
+
+    return masterscene
 
 def detect_strip_type(filepath):
     imb_ext_image = [
@@ -362,39 +371,32 @@ class Hide_Operator (bpy.types.Operator):
                 except:
                     print("hadn't a sequencer. poor little scene!")
 
+
 class Proxy_Operator(bpy.types.Operator): 
-     
+    """ Automatically create proxies with given settings for all strips in the directory
+    """
     bl_idname = "moviemanager.proxy"
     bl_label = "Create Proxies"
             
     def invoke(self, context, event ):  
         
-        masterscene = 0
-        masterscene_is_set = False
+        masterscene = get_masterscene()
         
-        for i in bpy.data.scenes:
-            if (i.timeline == True):
-                masterscene = i
-                masterscene_is_set = True
-                break
-        
-        if (masterscene_is_set == False):
+        if (masterscene is None):
             self.report({'ERROR_INVALID_INPUT'},'Please set a Timeline first.')
             return {'CANCELLED'}
             
-        if (masterscene.p50 == False and masterscene.p25 == False and masterscene.p75 == False  and masterscene.p100 == False ):
+        if (masterscene.p50 == False and masterscene.p25 == False and masterscene.p75 == False and masterscene.p100 == False ):
             self.report({'ERROR_INVALID_INPUT'},'No Proxies to create!.')
             return {'CANCELLED'}
         
         #get directory
         for a in context.window.screen.areas:
             if a.type == 'FILE_BROWSER':
-                dir = a.spaces[0].params.directory
+                directory = a.spaces[0].params.directory
                 break
-            
         try:
-            dir
-            
+            directory
         except:
             self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
             return {'CANCELLED'}
@@ -406,58 +408,64 @@ class Proxy_Operator(bpy.types.Operator):
             bool_IsVSE = False
         
         #Check if scene exists, if not -> new 
-        scene_exists = False
-        scene_name = "qID"
-        for i in bpy.data.scenes:
-            if i.name == scene_name:
-                scene_exists = True
-                
-        if (scene_exists == True):                                         
-            bpy.context.screen.scene = bpy.data.scenes[scene_name]   
-            
-        else:
-            new_scene = bpy.data.scenes.new(scene_name)                    
-                                                
-        scene = bpy.data.scenes[scene_name]
-        bpy.context.screen.scene = scene     
+        self.switch_to_scene(scene_name='qID')
         
         ## Get files in directory
+        filenames = [ f for f in listdir(directory) if isfile(join(directory,f)) ]
         
-        files = [ f for f in listdir(dir) if isfile(join(dir,f)) ]
-        
-        for k in files:
-            path =  dir + k
-            strip_type = detect_strip_type(k)
+        self.create_strips_and_set_proxy_settings(masterscene, directory, filenames)
+                            
+        bpy.ops.sequencer.select_all(action='SELECT')
+        bpy.ops.sequencer.rebuild_proxy()
 
-            if (strip_type == 'MOVIE'):                     
-                bpy.ops.sequencer.movie_strip_add(filepath=path) 
-                    
-                for j in bpy.context.scene.sequence_editor.sequences:
-                    if (j.type == 'MOVIE'):
-                        j.use_proxy = True
-                        if (masterscene.p25 == True):
-                            j.proxy.build_25 = True
-                            
-                        if (masterscene.p50 == True):
-                            j.proxy.build_50 = True
-                            
-                        if (masterscene.p75 == True):
-                            j.proxy.build_75 = True
-                            
-                        if (masterscene.p100 == True):
-                            j.proxy.build_100 = True
-                            
-                bpy.ops.sequencer.select_all(action='SELECT')
-                bpy.ops.sequencer.rebuild_proxy()
-                bpy.ops.sequencer.delete()
+        bpy.ops.sequencer.delete()
 
-            if (bool_IsVSE == False):       
-                bpy.context.area.type = 'FILE_BROWSER'
+        if (bool_IsVSE == False):
+            bpy.context.area.type = 'FILE_BROWSER'
 
         Switch_back_to_Timeline_Operator.invoke(self, context, event)
        
         return {'FINISHED'} 
- 
+
+    def switch_to_scene(self, scene_name):
+        """ If a scene of given name does not exist, create it. Then switch context to the scene
+        
+        :param scene_name: Name of the scene
+        :return: 
+        """
+        scene_exists = False
+        for i in bpy.data.scenes:
+            if i.name == scene_name:
+                scene_exists = True
+
+        if (scene_exists == True):
+            bpy.context.screen.scene = bpy.data.scenes[scene_name]
+        else:
+            new_scene = bpy.data.scenes.new(scene_name)
+
+        scene = bpy.data.scenes[scene_name]
+        bpy.context.screen.scene = scene
+
+    def create_strips_and_set_proxy_settings(self, masterscene, directory, filenames):
+        for filename in filenames:
+            path =  os.path.join(directory, filename)
+            strip_type = detect_strip_type(filename)
+
+            if (strip_type == 'MOVIE'):
+                bpy.ops.sequencer.movie_strip_add(filepath=path)
+                for sequence in bpy.context.scene.sequence_editor.sequences:
+                    if (sequence.type == 'MOVIE'):
+                        sequence.use_proxy = True
+                        if (masterscene.p25 == True):
+                            sequence.proxy.build_25 = True
+                        if (masterscene.p50 == True):
+                            sequence.proxy.build_50 = True
+                        if (masterscene.p75 == True):
+                            sequence.proxy.build_75 = True
+                        if (masterscene.p100 == True):
+                            sequence.proxy.build_100 = True
+
+
 class Edit_Range_Operator(bpy.types.Operator):  
     
     bl_idname = "moviemanager.edit_range"
@@ -466,33 +474,24 @@ class Edit_Range_Operator(bpy.types.Operator):
     
     def invoke (self, context, event):        
         
-        masterscene = 0
-        masterscene_is_set = False
+        masterscene = get_masterscene()
         
-        for i in bpy.data.scenes:
-            if (i.timeline == True):
-                masterscene = i
-                masterscene_is_set = True
-                break
-        
-        if (masterscene_is_set == False):
+        if (masterscene is None):
             self.report({'ERROR_INVALID_INPUT'},'Please set a Timeline first.')
             return {'CANCELLED'}
             
-        #get scene
+        #get scene parameters
         for a in context.window.screen.areas:
             if a.type == 'FILE_BROWSER':
-                params = a.spaces[0].params
+                scene_parameters = a.spaces[0].params
                 break
-           
         try:
-            params
-            
+            scene_parameters
         except:
             self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
             return {'CANCELLED'}
 
-        if params.filename == '':
+        if scene_parameters.filename == '':
             self.report({'ERROR_INVALID_INPUT'}, 'No file selected')
             return {'CANCELLED'}
         
@@ -502,51 +501,13 @@ class Edit_Range_Operator(bpy.types.Operator):
             bpy.context.area.type = 'SEQUENCE_EDITOR'
             bool_IsVSE = False
         
-        path = params.directory + params.filename
-        strip_type = detect_strip_type(params.filename)
-        scene_exists = False
-        scene_name = params.filename + "_Range"
+        source_path = os.path.join(scene_parameters.directory, scene_parameters.filename)
+        strip_type = detect_strip_type(scene_parameters.filename)
+
+        scene_name = scene_parameters.filename + "_Range"
 
         if (strip_type == 'MOVIE' or 'SOUND'):
-            
-            for i in bpy.data.scenes:
-                if i.source_path == path:
-                    scene_exists = True
-                    scene_name = i.name  
-            
-            if (scene_exists == True):                                         
-                bpy.context.screen.scene = bpy.data.scenes[scene_name]      
-                bpy.context.scene.sync_mode = masterscene.sync_mode              
-            
-            else:
-                new_scene = bpy.data.scenes.new(scene_name)                
-                scene_name = new_scene.name                
-                bpy.data.scenes[scene_name].source_path = path 
-              
-                new_scene.render.resolution_x = masterscene.render.resolution_x
-                new_scene.render.resolution_y = masterscene.render.resolution_y
-                new_scene.render.resolution_percentage = masterscene.render.resolution_percentage
-                new_scene.render.fps  = masterscene.render.fps
-                new_scene.frame_start = 0   
-                            
-                scene = bpy.data.scenes[scene_name]
-                
-                        
-                bpy.context.screen.scene = scene     
-                
-                bpy.context.scene.sync_mode = masterscene.sync_mode
-                   
-                #bpy.ops.sequencer.movie_strip_add(frame_start=0, filepath=path)
-                
-                if (strip_type == 'MOVIE'):
-                    bpy.ops.sequencer.movie_strip_add(frame_start=0, filepath=path) 
-                
-                elif (strip_type == 'SOUND'):
-                    bpy.ops.sequencer.sound_strip_add(frame_start=0, filepath=path)     
-                
-                bpy.context.scene.frame_end = bpy.context.scene.sequence_editor.active_strip.frame_final_duration 
-                
-                
+            self.create_new_scene_with_settings_from_masterscene(masterscene, source_path, strip_type)
         else:
             self.report({'ERROR_INVALID_INPUT'}, 'Invalid file format')
             return {'CANCELLED'}
@@ -559,15 +520,51 @@ class Edit_Range_Operator(bpy.types.Operator):
             
         #Change to custom layout if wanted.      
         if (masterscene.custom_screen == True):                
-            for i in bpy.data.screens:
+            for screen in bpy.data.screens:
                 bpy.ops.screen.screen_set(delta=1)
-                        
                 if (bpy.context.screen.name == masterscene.editing_range_screen):
                     break
-           
             bpy.context.screen.scene = bpy.data.scenes[scene_name]   
         
         return {'FINISHED'}
+
+    def create_new_scene_with_strip_and_switch_to_scene(self, masterscene, source_path, strip_type):
+        # get the according scene
+        scene_exists = False
+        for screen in bpy.data.scenes:
+            if screen.source_path == source_path:
+                scene_exists = True
+                scene_name = screen.name
+
+        if (scene_exists == True):
+            bpy.context.screen.scene = bpy.data.scenes[scene_name]
+            bpy.context.scene.sync_mode = masterscene.sync_mode
+        else:
+            scene = self.create_new_scene_with_settings_from_masterscene(masterscene, scene_name, source_path)
+
+            # scene = bpy.data.scenes[scene_name] TODO: Unnecessary, so remove
+
+            bpy.context.screen.scene = scene
+            bpy.context.scene.sync_mode = masterscene.sync_mode
+
+            if (strip_type == 'MOVIE'):
+                bpy.ops.sequencer.movie_strip_add(frame_start=0, filepath=source_path)
+            elif (strip_type == 'SOUND'):
+                bpy.ops.sequencer.sound_strip_add(frame_start=0, filepath=source_path)
+
+            bpy.context.scene.frame_end = bpy.context.scene.sequence_editor.active_strip.frame_final_duration
+
+    def create_new_scene_with_settings_from_masterscene(self, masterscene, scene_name, source_path):
+        new_scene = bpy.data.scenes.new(scene_name)
+        bpy.data.scenes[scene_name].source_path = source_path
+
+        new_scene.render.resolution_x = masterscene.render.resolution_x
+        new_scene.render.resolution_y = masterscene.render.resolution_y
+        new_scene.render.resolution_percentage = masterscene.render.resolution_percentage
+        new_scene.render.fps = masterscene.render.fps
+        new_scene.frame_start = 0
+
+        return new_scene
 
 class Switch_back_to_Timeline_Operator(bpy.types.Operator): 
      
@@ -576,33 +573,24 @@ class Switch_back_to_Timeline_Operator(bpy.types.Operator):
             
     def invoke(self, context, event ):  
         
-        masterscene = 0
-        masterscene_is_set = False
+        masterscene = get_masterscene()
         
-        for i in bpy.data.scenes:
-            if (i.timeline == True):
-                masterscene = i
-                masterscene_is_set = True
-                break
-        
-        if (masterscene_is_set == False):
+        if (masterscene is None):
             self.report({'ERROR_INVALID_INPUT'},'Please set a Timeline first.')
             return {'CANCELLED'} 
                      
         if (masterscene.custom_screen == True):         
-            for i in bpy.data.screens:
+            for screen in bpy.data.screens:
                 bpy.ops.screen.screen_set(delta=1)
-                        
                 if (bpy.context.screen.name == masterscene.editing_screen):
                     break
-           
             bpy.context.screen.scene = masterscene
-                        
         else:
             bpy.context.screen.scene = masterscene   
            
         return {'FINISHED'}    
-    
+
+
 class Insert_Strip_Masterscene(bpy.types.Operator):  
     
     bl_idname = "moviemanager.insert_strip_masterscene"
@@ -610,79 +598,69 @@ class Insert_Strip_Masterscene(bpy.types.Operator):
     bl_description = "Insert the selected Strip into the Timeline of the Editing Scene"
     
     def invoke(self, context, event):
-        
-        masterscene = 0
-        masterscene_is_set = False
-        
-        for i in bpy.data.scenes:
-            if (i.timeline == True):
-                masterscene = i
-                masterscene_is_set = True
-                break
-        
-        if (masterscene_is_set == False):
-            self.report({'ERROR_INVALID_INPUT'},'Please set a Timeline first.')
-            return {'CANCELLED'}
-        
-        strip = bpy.context.scene.sequence_editor.active_strip
+        """ Called from the range scene. Insert the selected clip into the masterscene,
+            performing 2 or 3-point editing if strips are selected in the masterscene.
+        """
+        masterscene = get_masterscene()
 
-        if (strip.type == 'MOVIE' or 'SOUND'):
-            
-            cut_end = False
-                
-            scene = bpy.context.scene
+        if (masterscene is None):
+            self.report({'ERROR_INVALID_INPUT'}, 'Please set a Timeline first.')
+            return {'CANCELLED'}
+
+        strip_to_insert = bpy.context.scene.sequence_editor.active_strip
+
+        if (strip_to_insert.type == 'MOVIE' or 'SOUND'):
+            range_scene = bpy.context.scene
             bpy.context.screen.scene = masterscene
-            
-            #Get current frame and channel
-            
-            if (bpy.context.selected_sequences):  
-                current_frame = bpy.context.screen.scene.sequence_editor.active_strip.frame_final_end
-                channel = bpy.context.screen.scene.sequence_editor.active_strip.channel
-                
-            else:
-                current_frame = bpy.context.scene.frame_current
-                channel = scene.channel
-                
-            frame_final_end = current_frame + strip.frame_final_duration
-            frame_start = current_frame - ( strip.frame_final_start - strip.frame_start )
-            
-            #If there is a selected strip, limit the length of the new one           
-            try:
-                for j in bpy.context.selected_sequences:
-                    if (j.frame_final_start < frame_final_end and j.frame_final_start > current_frame):
-                        frame_final_end = j.frame_final_start
-                        
-            except:
-                print("no selected sequences")
-            
-            if (strip.type == 'MOVIE'):
-                bpy.ops.sequencer.movie_strip_add(frame_start=frame_start, channel=channel, overlap=True, filepath=strip.filepath) 
-                
-            elif (strip.type == 'SOUND'):
-                bpy.ops.sequencer.sound_strip_add(frame_start=frame_start, channel=channel, overlap=True, filepath=strip.filepath)             
-            
-            
+
+            frame_start, frame_final_start, frame_final_end, channel = self.get_destination_start_end_frames_and_channel(range_scene, strip_to_insert)
+            if (strip_to_insert.type == 'MOVIE'):
+                bpy.ops.sequencer.movie_strip_add(frame_start=frame_start, channel=channel, overlap=True, filepath=strip_to_insert.filepath)
+            elif (strip_to_insert.type == 'SOUND'):
+                bpy.ops.sequencer.sound_strip_add(frame_start=frame_start, channel=channel, overlap=True, filepath=strip_to_insert.filepath)
+
             #Apply in and out points
-            if (strip.type == 'MOVIE' and masterscene.meta == True):
+            if (strip_to_insert.type == 'MOVIE' and masterscene.meta == True):
                 bpy.ops.sequencer.meta_make()
-                bpy.context.scene.sequence_editor.active_strip.frame_final_start = current_frame
+                bpy.context.scene.sequence_editor.active_strip.frame_final_start = frame_final_start
                 bpy.context.scene.sequence_editor.active_strip.frame_final_end = frame_final_end
                 bpy.context.scene.sequence_editor.active_strip.channel = channel
-                
             else:
-                for i in bpy.context.selected_sequences:  
-                    channel = i.channel 
-                    i.frame_final_start = current_frame
-                    i.frame_final_end = frame_final_end
-                    i.channel = channel
-                #i.frame_start = frame_start - scene.frame_start    
-                
-                   
-            bpy.context.screen.scene = scene
+                for selected_sequence in bpy.context.selected_sequences:
+                    channel = selected_sequence.channel
+                    selected_sequence.frame_final_start = frame_final_start
+                    selected_sequence.frame_final_end = frame_final_end
+                    selected_sequence.channel = channel
+
+            # change visible scene back
+            bpy.context.screen.scene = range_scene
             
             return {'FINISHED'}         
  
-    
+    def get_destination_start_end_frames_and_channel(self, range_scene, strip_to_insert):
+        # Get current frame and channel.
+        # If sequences are selected in the master scene, set it to the active strip for 2-point editing
+        if (bpy.context.selected_sequences):
+            frame_final_start = bpy.context.screen.scene.sequence_editor.active_strip.frame_final_end
+            channel = bpy.context.screen.scene.sequence_editor.active_strip.channel
+        else:
+            frame_final_start = bpy.context.scene.frame_current
+            channel = range_scene.channel
+
+        frame_final_end = frame_final_start + strip_to_insert.frame_final_duration
+        frame_start = frame_final_start - (strip_to_insert.frame_final_start - strip_to_insert.frame_start)
+
+        # If there is a selected strip, limit the length of the new one
+        try:
+            for selected_sequence in bpy.context.selected_sequences:
+                if (
+                        selected_sequence.frame_final_start < frame_final_end and selected_sequence.frame_final_start > frame_final_start):
+                    frame_final_end = selected_sequence.frame_final_start
+        except:
+            print("no selected sequences")
+
+        return frame_start, frame_final_start, frame_final_end, channel
+
 class Insert_Strip(bpy.types.Operator):  
     
     bl_idname = "moviemanager.insert_strip"
@@ -690,98 +668,84 @@ class Insert_Strip(bpy.types.Operator):
     bl_description = "Insert the selected File into the Timeline"
     
     def invoke(self, context, event):
+        masterscene = get_masterscene()
 
-        masterscene = 0
-        masterscene_is_set = False
-        
-        for i in bpy.data.scenes:
-            if (i.timeline == True):
-                masterscene = i
-                masterscene_is_set = True
-                break
-        
-        if (masterscene_is_set == False):
-            self.report({'ERROR_INVALID_INPUT'},'Please set a Timeline first.')
+        if (masterscene is None):
+            self.report({'ERROR_INVALID_INPUT'}, 'Please set a Timeline first.')
             return {'CANCELLED'}
         
         for a in context.window.screen.areas:
             if a.type == 'FILE_BROWSER':
                 params = a.spaces[0].params
                 break
-           
         try:
             params
-            
         except:
             self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
             return {'CANCELLED'}
-
         if params.filename == '':
             self.report({'ERROR_INVALID_INPUT'}, 'No file selected')
             return {'CANCELLED'}
 
         path = params.directory + params.filename
         strip_type = detect_strip_type(params.filename)
-        scene_exists = False
 
         if (strip_type == 'MOVIE' or 'SOUND'):
-            
-            for i in bpy.data.scenes:
-                if i.source_path == path:
+            # find the scene belonging to the strip
+            scene_exists = False
+            for scene in bpy.data.scenes:
+                if scene.source_path == path:
                     scene_exists = True
-                    scene_name = i.name
-                    scene = i
-                    break       
-            
-            #Get current frame
-            if (bpy.context.selected_sequences):  
+                    scene = scene
+                    break
+
+            #Get current frame and channel
+            if (bpy.context.selected_sequences):
                 current_frame = bpy.context.screen.scene.sequence_editor.active_strip.frame_final_end
                 channel = bpy.context.screen.scene.sequence_editor.active_strip.channel
-                
             else:
                 current_frame = bpy.context.scene.frame_current
                 channel = bpy.context.scene.channel
-                     
-            if (scene_exists == True):
-                
-                if (strip_type == 'MOVIE'):
-                   bpy.ops.sequencer.movie_strip_add(frame_start=current_frame, channel=channel, filepath=path)
-                
-                elif (strip_type == 'SOUND'):
-                   bpy.ops.sequencer.sound_strip_add(frame_start=current_frame, channel=channel, filepath=path)             
 
+            # if a scene exists, insert the strip with proper in- and outpoints.
+            # else, insert new strip from filepath
+            if (scene_exists == True):
+                if (strip_type == 'MOVIE'):
+                    bpy.ops.sequencer.movie_strip_add(frame_start=current_frame, channel=channel, filepath=path)
+
+                elif (strip_type == 'SOUND'):
+                    bpy.ops.sequencer.sound_strip_add(frame_start=current_frame, channel=channel, filepath=path)
+
+                # get in and out points
                 frame_start = bpy.context.scene.sequence_editor.active_strip.frame_start
                 frame_end = bpy.context.scene.sequence_editor.active_strip.frame_final_end
                 duration = bpy.context.scene.sequence_editor.active_strip.frame_duration
                 end_offset = duration - scene.frame_end
-                
+
                 #Apply in and out points
-                
                 if (strip_type == 'MOVIE' and bpy.context.scene.meta == True):
                     bpy.ops.sequencer.meta_make()
                     bpy.context.scene.sequence_editor.active_strip.frame_start + scene.frame_start
                     bpy.context.scene.sequence_editor.active_strip.frame_final_end = frame_end - end_offset + 1
                     bpy.context.scene.sequence_editor.active_strip.channel = channel
-                
                 else:
-                    for i in bpy.context.selected_sequences:   
-                        channel = i.channel
-                        i.frame_final_start = frame_start + scene.frame_start
-                        i.frame_final_end = frame_end - end_offset + 1
-                        i.frame_start = frame_start - scene.frame_start       
-                        i.channel = channel
-                    
+                    for selected_sequene in bpy.context.selected_sequences:
+                        channel = scene.channel
+                        selected_sequene.frame_final_start = frame_start + scene.frame_start
+                        selected_sequene.frame_final_end = frame_end - end_offset + 1
+                        selected_sequene.frame_start = frame_start - scene.frame_start
+                        selected_sequene.channel = channel
             else:
                 if (strip_type == 'MOVIE'):
-                   bpy.ops.sequencer.movie_strip_add(frame_start=current_frame, channel=channel, filepath=path)
-                
+                    bpy.ops.sequencer.movie_strip_add(frame_start=current_frame, channel=channel, filepath=path)
                 elif (strip_type == 'SOUND'):
-                   bpy.ops.sequencer.sound_strip_add(frame_start=current_frame, channel=channel, filepath=path)      
-                
+                    bpy.ops.sequencer.sound_strip_add(frame_start=current_frame, channel=channel, filepath=path)
+
             if (strip_type == 'MOVIE' and masterscene.meta == True):
                 bpy.ops.moviemanager.meta()
-            return {'FINISHED'}         
-        
+            return {'FINISHED'}
+
+
 class Meta(bpy.types.Operator):  
     
     bl_idname = "moviemanager.meta"
@@ -807,8 +771,9 @@ class Meta(bpy.types.Operator):
         bpy.context.scene.sequence_editor.active_strip.frame_final_start = frame_final_start
         bpy.context.scene.sequence_editor.active_strip.frame_final_end = frame_final_end
         bpy.context.scene.sequence_editor.active_strip.channel = channel
-        return {'FINISHED'} 
- 
+        return {'FINISHED'}
+
+
 class Unmeta(bpy.types.Operator):  
     
     bl_idname = "moviemanager.unmeta"
@@ -890,7 +855,8 @@ class select_current (bpy.types.Operator):
                         i.select = True
 
         return {'FINISHED'}     
-      
+
+
 class cut_current (bpy.types.Operator):
     bl_idname = "ht.cut_current"
     bl_label = "Cut current Strip"
@@ -941,7 +907,8 @@ class cut_current (bpy.types.Operator):
         cut = bpy.ops.sequencer.cut(frame=current_frame)
 
         return {'FINISHED'}     
-    
+
+
 class trim_left (bpy.types.Operator):
     bl_idname = "ht.trim_left"
     bl_label = "Trim Left"
@@ -951,7 +918,8 @@ class trim_left (bpy.types.Operator):
         for i in bpy.context.selected_sequences:
             i.frame_final_start = bpy.context.scene.frame_current
         return {'FINISHED'}                    
-    
+
+
 class trim_right (bpy.types.Operator):
     bl_idname = "ht.trim_right"
     bl_label = "Trim Right"
@@ -961,7 +929,8 @@ class trim_right (bpy.types.Operator):
         for i in bpy.context.selected_sequences:
             i.frame_final_end = bpy.context.scene.frame_current
         return {'FINISHED'}          
-    
+
+
 class snap_end (bpy.types.Operator):
     bl_idname = "ht.snap_end"
     bl_label = "Snap End"
