@@ -21,7 +21,7 @@ bl_info = {
     "name": "SunTools",
     "description": "Define in- and outpoints of your material in the file browser",
     "author": "Björn Sonnenschein",
-    "version": (1, 2),
+    "version": (1, 3),
     "blender": (2, 71, 0),
     "location": "File Browser > Tools",
     "warning": "Experimental",
@@ -34,28 +34,6 @@ bl_info = {
 import bpy, os
 from os import listdir
 from os.path import isfile, join
- 
-#######Changelog########
-##Let's keep track of changes if some people will develop this script independently from each other.
-
-# Fixed stupid Bug in Hide Operator
-# Added Hide Operator
-# Merged TrimTools and the Movie Manager
-# Fixed crash after proxy creation
-# Automatic proxy creation for the current directory added! 
-# Switching to an existing Range scene applies the sync mode from master scene.
-# bugfixes. options can only be made from master scene.
-# Buttons are only shown when it makes sense. Added operators to properly merge and separate audio and video into metastrip.
-# Ui Redesign. Also, we can make a metastrip automatically.
-# If there is an active strip in the master scene, the new strip will be added at its endframe instead of the current frame.
-  # And if there is also a selected strip starting after the active strip, the inserted strips length will be limited to the selected strips start frame.
-# Sync Mode is taken over on scene changes.
-# Edit Range works when called from FileManager, too.
-# added support for sound files
-# added "insert into editing scene" button. Inserts the selected strip into the timeline scene. 
-# added option to disable automatic addition of audio
-# Option to zoom to selection after entering edit range.
-# Realigned ui
 
 ##TODO
 # instead of setting area type for non-vse to file browser in edit range operator, save the current area type in a variable and switch back to it.
