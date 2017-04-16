@@ -466,8 +466,8 @@ class Proxy_Operator(bpy.types.Operator):
                             sequence.proxy.build_100 = True
 
 
-class Edit_Range_Operator(bpy.types.Operator):  
-    
+# TODO: Use framerate and render size from the master scene
+class Edit_Range_Operator(bpy.types.Operator):
     bl_idname = "moviemanager.edit_range"
     bl_label = "Edit Range"
     bl_description = "Edit the Range of the selected clip in the File Browser. Use the new scene's Start and end Frame"
