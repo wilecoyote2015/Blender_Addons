@@ -18,50 +18,6 @@
 
 # TODO: Correctly handle image sequences which start at a frame number >0. The correct offset has to be set.
 
-# NEWS
-
-# Fixed issues with Blender 2.68 and up.
-
-# This Version is compatible with blender trunk, but not with 2.66a or earlier releases
-# There's also an edit composition button in the compositor, now (intended for working
-# with blender's gui splitted into more than on window).
-#
-# now the operator checks for existing image or movie datablocks 
-# before to create new ones, no more duplicated garbage in the blend file...
-#
-# dropdown selectors for node groups and screens (updated dinamically
-# everytime an scene property change)
-# 
-# all options are now persitent in the blend file
-
-# when creating a new comp, main scene resolution is
-# changed acording to source video resolution: bpy.ops.sequencer.rendersize()
-# and the render settings are copied to the new scene
-
-# new scenes are renamed
-# Comp_stripsource.name
-
-# render options removed. The new comp output filepath is set to
-# //Comp/Comp_filename
-
-# i.e: a strip refering a video called video will generate
-# a comp called Comp_video or Comp_video.00x (if other already exist)
-# with output render set to: //Comp/Comp_video/
-
-# if you choose automatic proxy settings
-# the new scene strip will have proxy set to custom directory
-# in this way:   //.proxy/Comp_video
-
-# with preserve duration you will obtain a soft cutted scene strip
-# without preserve duration you will obtain a hard cutted scene strip
-# both options fully synched with original strip no matter if it has
-# soft and hard cuts
-
-# added scale node options 
-# (auto set to strech, to work with multiple resolutions)
-
-# "add node group" option now is only visible if some nodegroup exist
-
 bl_info = {
     "name": "Edit Strip With Compositor REMAKE f",
     "description": "Send one or more Sequencer strips to the Compositor, gently",
