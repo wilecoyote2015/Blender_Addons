@@ -378,10 +378,8 @@ class Proxy_Operator(bpy.types.Operator):
     bl_idname = "moviemanager.proxy"
     bl_label = "Create Proxies"
             
-    def invoke(self, context, event ):  
-        
+    def invoke(self, context, event ):
         masterscene = get_masterscene()
-        
         if (masterscene is None):
             self.report({'ERROR_INVALID_INPUT'},'Please set a Timeline first.')
             return {'CANCELLED'}
@@ -417,7 +415,6 @@ class Proxy_Operator(bpy.types.Operator):
                             
         bpy.ops.sequencer.select_all(action='SELECT')
         bpy.ops.sequencer.rebuild_proxy()
-
         bpy.ops.sequencer.delete()
 
         if (bool_IsVSE == False):
@@ -475,7 +472,6 @@ class Edit_Range_Operator(bpy.types.Operator):
     def invoke (self, context, event):        
         
         masterscene = get_masterscene()
-        
         if (masterscene is None):
             self.report({'ERROR_INVALID_INPUT'},'Please set a Timeline first.')
             return {'CANCELLED'}
@@ -503,7 +499,6 @@ class Edit_Range_Operator(bpy.types.Operator):
         
         source_path = os.path.join(scene_parameters.directory, scene_parameters.filename)
         strip_type = detect_strip_type(scene_parameters.filename)
-
         scene_name = scene_parameters.filename + "_Range"
 
         if (strip_type == 'MOVIE' or 'SOUND'):
@@ -514,7 +509,6 @@ class Edit_Range_Operator(bpy.types.Operator):
 	  
         if (masterscene.zoom == True and bool_IsVSE == True):
             bpy.ops.sequencer.view_selected()
-            
         if (bool_IsVSE == False):       
             bpy.context.area.type = 'FILE_BROWSER'
             
@@ -574,7 +568,6 @@ class Switch_back_to_Timeline_Operator(bpy.types.Operator):
     def invoke(self, context, event ):  
         
         masterscene = get_masterscene()
-        
         if (masterscene is None):
             self.report({'ERROR_INVALID_INPUT'},'Please set a Timeline first.')
             return {'CANCELLED'} 
@@ -602,13 +595,11 @@ class Insert_Strip_Masterscene(bpy.types.Operator):
             performing 2 or 3-point editing if strips are selected in the masterscene.
         """
         masterscene = get_masterscene()
-
         if (masterscene is None):
             self.report({'ERROR_INVALID_INPUT'}, 'Please set a Timeline first.')
             return {'CANCELLED'}
 
         strip_to_insert = bpy.context.scene.sequence_editor.active_strip
-
         if (strip_to_insert.type == 'MOVIE' or 'SOUND'):
             range_scene = bpy.context.scene
             bpy.context.screen.scene = masterscene
@@ -618,19 +609,7 @@ class Insert_Strip_Masterscene(bpy.types.Operator):
                 bpy.ops.sequencer.movie_strip_add(frame_start=frame_start, channel=channel, overlap=True, filepath=strip_to_insert.filepath)
             elif (strip_to_insert.type == 'SOUND'):
                 bpy.ops.sequencer.sound_strip_add(frame_start=frame_start, channel=channel, overlap=True, filepath=strip_to_insert.filepath)
-
-            #Apply in and out points
-            if (strip_to_insert.type == 'MOVIE' and masterscene.meta == True):
-                bpy.ops.sequencer.meta_make()
-                bpy.context.scene.sequence_editor.active_strip.frame_final_start = frame_final_start
-                bpy.context.scene.sequence_editor.active_strip.frame_final_end = frame_final_end
-                bpy.context.scene.sequence_editor.active_strip.channel = channel
-            else:
-                for selected_sequence in bpy.context.selected_sequences:
-                    channel = selected_sequence.channel
-                    selected_sequence.frame_final_start = frame_final_start
-                    selected_sequence.frame_final_end = frame_final_end
-                    selected_sequence.channel = channel
+            self.apply_in_and_out_points(masterscene, strip_to_insert, frame_final_start, frame_final_end, channel)
 
             # change visible scene back
             bpy.context.screen.scene = range_scene
@@ -660,6 +639,20 @@ class Insert_Strip_Masterscene(bpy.types.Operator):
             print("no selected sequences")
 
         return frame_start, frame_final_start, frame_final_end, channel
+
+    def apply_in_and_out_points(self, masterscene, strip_to_insert, frame_final_start, frame_final_end, channel):
+        # Apply in and out points
+        if (strip_to_insert.type == 'MOVIE' and masterscene.meta == True):
+            bpy.ops.sequencer.meta_make()
+            strip_to_insert.frame_final_start = frame_final_start
+            strip_to_insert.frame_final_end = frame_final_end
+            strip_to_insert.channel = channel
+        else:
+            for selected_sequence in bpy.context.selected_sequences:
+                channel = selected_sequence.channel
+                selected_sequence.frame_final_start = frame_final_start
+                selected_sequence.frame_final_end = frame_final_end
+                selected_sequence.channel = channel
 
 class Insert_Strip(bpy.types.Operator):  
     
@@ -746,8 +739,7 @@ class Insert_Strip(bpy.types.Operator):
             return {'FINISHED'}
 
 
-class Meta(bpy.types.Operator):  
-    
+class Meta(bpy.types.Operator):
     bl_idname = "moviemanager.meta"
     bl_label = "Meta"
     bl_description = "Merge Audio and Video into meta strip"
@@ -755,18 +747,18 @@ class Meta(bpy.types.Operator):
     def invoke(self, context, event):
         
         channel = 100
-        for i in bpy.context.selected_sequences:
-            if (i.channel < channel):
-                channel = i.channel
+        for selected_sequence in bpy.context.selected_sequences:
+            if (selected_sequence.channel < channel):
+                channel = selected_sequence.channel
                 
         bpy.ops.sequencer.meta_make()
         frame_final_start = bpy.context.scene.sequence_editor.active_strip.frame_final_start
         frame_final_end = bpy.context.scene.sequence_editor.active_strip.frame_final_end
         
         bpy.ops.sequencer.meta_toggle()
-        for i in bpy.context.selected_sequences:
-            i.frame_final_start = i.frame_start
-            i.frame_final_duration = i.frame_duration
+        for selected_sequence in bpy.context.selected_sequences:
+            selected_sequence.frame_final_start = selected_sequence.frame_start
+            selected_sequence.frame_final_duration = selected_sequence.frame_duration
         bpy.ops.sequencer.meta_toggle()
         bpy.context.scene.sequence_editor.active_strip.frame_final_start = frame_final_start
         bpy.context.scene.sequence_editor.active_strip.frame_final_end = frame_final_end
@@ -774,36 +766,36 @@ class Meta(bpy.types.Operator):
         return {'FINISHED'}
 
 
-class Unmeta(bpy.types.Operator):  
-    
+class Unmeta(bpy.types.Operator):
     bl_idname = "moviemanager.unmeta"
     bl_label = "Unmeta"
     bl_description = "Separate Audio and Video"
     
     def invoke(self, context, event):
-        #sequences = []
-        #for h in bpy.context.selected_sequences:     
-        #    sequences.append(h)
-            
-        for i in bpy.context.selected_sequences:
-            if (i.type == 'META'):
-                channel = i.channel
-                frame_final_start = i.frame_final_start
-                frame_final_end = i.frame_final_end
-                bpy.ops.sequencer.select_all(action='DESELECT')
-                i.select = True
-                bpy.context.scene.sequence_editor.active_strip = i
-                bpy.ops.sequencer.meta_separate()
-                for j in bpy.context.selected_sequences:
-                    j.frame_final_start = frame_final_start
-                    j.frame_final_end = frame_final_end
-                    if (j.type == 'MOVIE'):
-                        j.channel = channel
-                    else:
-                        j.channel = channel + 1
-                        
+        for meta_strip in bpy.context.selected_sequences:
+            if (meta_strip.type == 'META'):
+                channel = meta_strip.channel
+                self.separate_meta_strip(meta_strip)
+                self.apply_meta_strip_channel(channel)
         return {'FINISHED'} 
- 
+
+    def separate_meta_strip(self, meta_strip):
+        frame_final_start = meta_strip.frame_final_start
+        frame_final_end = meta_strip.frame_final_end
+        bpy.ops.sequencer.select_all(action='DESELECT')
+        meta_strip.select = True
+        bpy.context.scene.sequence_editor.active_strip = meta_strip
+        bpy.ops.sequencer.meta_separate()
+        for sequence_from_meta in bpy.context.selected_sequences:
+            sequence_from_meta.frame_final_start = frame_final_start
+            sequence_from_meta.frame_final_end = frame_final_end
+
+    def apply_meta_strip_channel(self, channel):
+        for sequence_from_meta in reversed(bpy.context.selected_sequences):
+            if (sequence_from_meta.type == 'MOVIE'):
+                sequence_from_meta.channel = channel
+            else:
+                sequence_from_meta.channel = channel + 1
 
 ####### TrimTools Operators ########
 
