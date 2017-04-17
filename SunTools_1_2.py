@@ -694,7 +694,6 @@ class Insert_Strip(bpy.types.Operator):
             if (scene_exists == True):
                 if (strip_type == 'MOVIE'):
                     bpy.ops.sequencer.movie_strip_add(frame_start=current_frame, channel=channel, filepath=path)
-
                 elif (strip_type == 'SOUND'):
                     bpy.ops.sequencer.sound_strip_add(frame_start=current_frame, channel=channel, filepath=path)
 
@@ -722,6 +721,7 @@ class Insert_Strip(bpy.types.Operator):
             if (strip_type == 'MOVIE' and masterscene.meta == True):
                 bpy.ops.sequencer.meta_make()
             return {'FINISHED'}
+
 
 class Unmeta(bpy.types.Operator):
     bl_idname = "moviemanager.unmeta"
