@@ -24,7 +24,6 @@ bl_info = {
     "version": (1, 3),
     "blender": (2, 71, 0),
     "location": "File Browser > Tools",
-    "warning": "Experimental",
     "wiki_url": "None Yet"
                 "None Yet",
     "tracker_url": "None"

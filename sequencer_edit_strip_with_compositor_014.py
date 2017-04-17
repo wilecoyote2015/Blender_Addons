@@ -23,9 +23,8 @@ bl_info = {
     "description": "Send one or more Sequencer strips to the Compositor, gently",
     "author": "Carlos Padial, TMW, Björn Sonnenschein",
     "version": (0, 14),
-    "blender": (2, 66, 6),
+    "blender": (2, 78),
     "location": "Sequencer > UI panel, Node Editor > UI panel",
-    "warning": "Experimental",
     "wiki_url": "None Yet"
                 "None Yet",
     "tracker_url": "None"
