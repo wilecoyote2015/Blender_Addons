@@ -935,6 +935,7 @@ def unregister():
     bpy.utils.unregister_class( trim_left )
     bpy.utils.unregister_class( trim_right )
     bpy.utils.unregister_class( snap_end )
+
 if __name__ == "__main__":
     register()
 

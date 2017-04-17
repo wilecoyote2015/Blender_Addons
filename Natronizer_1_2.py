@@ -52,6 +52,7 @@ bpy.types.Scene.customPlugin = bpy.props.StringProperty(name="custom Plugin", de
 bpy.types.Scene.livePreview = bpy.props.BoolProperty(name="live Preview", description="whether the Preview of Natron Projects shall be updated on framechange", default=True)
 bpy.types.Scene.livePreview2 = bpy.props.BoolProperty(name="live Preview", description="whether the Preview of Natron Projects shall be updated on framechange", default=False) 
 
+#TODO: Use os.path!
 
 ####### Handlers #####
 @persistent
