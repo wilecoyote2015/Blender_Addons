@@ -535,9 +535,6 @@ class Edit_Range_Operator(bpy.types.Operator):
             bpy.context.scene.sync_mode = masterscene.sync_mode
         else:
             scene = self.create_new_scene_with_settings_from_masterscene(masterscene, scene_name, source_path)
-
-            # scene = bpy.data.scenes[scene_name] TODO: Unnecessary, so remove
-
             bpy.context.screen.scene = scene
             bpy.context.scene.sync_mode = masterscene.sync_mode
 
