@@ -84,9 +84,7 @@ class ESWC_Info(bpy.types.PropertyGroup):
     
     preserveduration_bool = BoolProperty( 
         name = "Preserve strip duration", 
-        description = "For single clips the new scene will have the duration \
-         of the active movie strip's input file and gets trimmed \
-         to match it's length", 
+        description = "If activated, the composite will have the untrimmed instead of trimmed length of the input strip.",
         default = False )    
     
     addviewer_bool = BoolProperty(
@@ -115,7 +113,7 @@ class ESWC_Info(bpy.types.PropertyGroup):
         name = "Settings Type", 
         items = selections, 
         default="All",
-        description = "Choose which settings to copy" ) 
+        description = "Choose which settings to copy from the source clip to the created composition" )
     
     proxy_qualities = [  ( "1", "25%", "" ), ( "2", "50%", "" ),
                     ( "3", "75%", "" ), ( "4", "100%", "" )]
