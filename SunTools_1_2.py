@@ -482,7 +482,7 @@ class Edit_Range_Operator(bpy.types.Operator):
                 scene_parameters = a.spaces[0].params
                 break
         try:
-            scene_parameters
+            filename = scene_parameters.filename
         except:
             self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
             return {'CANCELLED'}
@@ -497,12 +497,12 @@ class Edit_Range_Operator(bpy.types.Operator):
             bpy.context.area.type = 'SEQUENCE_EDITOR'
             bool_IsVSE = False
 
-        source_path = os.path.join(scene_parameters.directory, scene_parameters.filename)
-        strip_type = detect_strip_type(scene_parameters.filename)
-        scene_name = scene_parameters.filename + "_Range"
+        source_path = os.path.join(scene_parameters.directory, filename)
+        strip_type = detect_strip_type(filename)
+        scene_name = filename + "_Range"
 
         if (strip_type == 'MOVIE' or 'SOUND'):
-            self.create_new_scene_with_settings_from_masterscene(masterscene, source_path, strip_type)
+            self.create_new_scene_with_strip_and_switch_to_scene(masterscene, source_path, strip_type, scene_name)
         else:
             self.report({'ERROR_INVALID_INPUT'}, 'Invalid file format')
             return {'CANCELLED'}
@@ -522,13 +522,13 @@ class Edit_Range_Operator(bpy.types.Operator):
 
         return {'FINISHED'}
 
-    def create_new_scene_with_strip_and_switch_to_scene(self, masterscene, source_path, strip_type):
+    def create_new_scene_with_strip_and_switch_to_scene(self, masterscene, source_path, strip_type, scene_name):
         # get the according scene
         scene_exists = False
-        for screen in bpy.data.scenes:
-            if screen.source_path == source_path:
+        for scene in bpy.data.scenes:
+            if scene.source_path == source_path:
                 scene_exists = True
-                scene_name = screen.name
+                scene_name = scene.name
 
         if (scene_exists == True):
             bpy.context.screen.scene = bpy.data.scenes[scene_name]
@@ -550,6 +550,7 @@ class Edit_Range_Operator(bpy.types.Operator):
 
     def create_new_scene_with_settings_from_masterscene(self, masterscene, scene_name, source_path):
         new_scene = bpy.data.scenes.new(scene_name)
+        scene_name = new_scene.name
         bpy.data.scenes[scene_name].source_path = source_path
 
         new_scene.render.resolution_x = masterscene.render.resolution_x
@@ -632,8 +633,7 @@ class Insert_Strip_Masterscene(bpy.types.Operator):
         # If there is a selected strip, limit the length of the new one
         try:
             for selected_sequence in bpy.context.selected_sequences:
-                if (
-                        selected_sequence.frame_final_start < frame_final_end and selected_sequence.frame_final_start > frame_final_start):
+                if (selected_sequence.frame_final_start < frame_final_end and selected_sequence.frame_final_start > frame_final_start):
                     frame_final_end = selected_sequence.frame_final_start
         except:
             print("no selected sequences")
