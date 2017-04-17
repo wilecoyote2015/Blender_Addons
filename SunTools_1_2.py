@@ -463,7 +463,6 @@ class Proxy_Operator(bpy.types.Operator):
                             sequence.proxy.build_100 = True
 
 
-# TODO: Use framerate and render size from the master scene
 class Edit_Range_Operator(bpy.types.Operator):
     bl_idname = "moviemanager.edit_range"
     bl_label = "Edit Range"
@@ -559,7 +558,6 @@ class Edit_Range_Operator(bpy.types.Operator):
         return new_scene
 
 class Switch_back_to_Timeline_Operator(bpy.types.Operator):
-
     bl_idname = "moviemanager.switch_back_to_timeline"
     bl_label = "Get Back"
 
@@ -583,7 +581,6 @@ class Switch_back_to_Timeline_Operator(bpy.types.Operator):
 
 
 class Insert_Strip_Masterscene(bpy.types.Operator):
-
     bl_idname = "moviemanager.insert_strip_masterscene"
     bl_label = "Insert into editing scene"
     bl_description = "Insert the selected Strip into the Timeline of the Editing Scene"
@@ -599,10 +596,10 @@ class Insert_Strip_Masterscene(bpy.types.Operator):
 
         strip_to_insert = bpy.context.scene.sequence_editor.active_strip
         if (strip_to_insert.type == 'MOVIE' or 'SOUND'):
-            range_scene = bpy.context.scene
+            range_scene_name = bpy.context.scene.name
             bpy.context.screen.scene = masterscene
 
-            frame_start, frame_final_start, frame_final_end, channel = self.get_destination_start_end_frames_and_channel(range_scene, strip_to_insert)
+            frame_start, frame_final_start, frame_final_end, channel = self.get_destination_start_end_frames_and_channel(range_scene_name, strip_to_insert)
             if (strip_to_insert.type == 'MOVIE'):
                 bpy.ops.sequencer.movie_strip_add(frame_start=frame_start, channel=channel, overlap=True, filepath=strip_to_insert.filepath)
             elif (strip_to_insert.type == 'SOUND'):
@@ -610,11 +607,11 @@ class Insert_Strip_Masterscene(bpy.types.Operator):
             self.apply_in_and_out_points(masterscene, strip_to_insert, frame_final_start, frame_final_end, channel)
 
             # change visible scene back
-            bpy.context.screen.scene = range_scene
+            bpy.context.screen.scene = bpy.data.scenes[range_scene_name]
 
             return {'FINISHED'}
 
-    def get_destination_start_end_frames_and_channel(self, range_scene, strip_to_insert):
+    def get_destination_start_end_frames_and_channel(self, range_scene_name, strip_to_insert):
         # Get current frame and channel.
         # If sequences are selected in the master scene, set it to the active strip for 2-point editing
         if (bpy.context.selected_sequences):
@@ -622,7 +619,7 @@ class Insert_Strip_Masterscene(bpy.types.Operator):
             channel = bpy.context.screen.scene.sequence_editor.active_strip.channel
         else:
             frame_final_start = bpy.context.scene.frame_current
-            channel = range_scene.channel
+            channel = bpy.data.scenes[range_scene_name].channel
 
         frame_final_end = frame_final_start + strip_to_insert.frame_final_duration
         frame_start = frame_final_start - (strip_to_insert.frame_final_start - strip_to_insert.frame_start)
@@ -652,7 +649,6 @@ class Insert_Strip_Masterscene(bpy.types.Operator):
                 selected_sequence.channel = channel
 
 class Insert_Strip(bpy.types.Operator):
-
     bl_idname = "moviemanager.insert_strip"
     bl_label = "Insert selected File"
     bl_description = "Insert the selected File into the Timeline"
