@@ -142,15 +142,15 @@ def detect_strip_type(filepath):
 ### IOP Section 
 BoolProperty = bpy.props.BoolProperty
 scnType.custom_screen = BoolProperty( name="Custom Screen",
-                                     description = "Use a custom screen layout for range editing? ",
+                                     description = "Use a custom screen layout for range editing ",
                                      default=False )
 
 scnType.meta = BoolProperty( name="Metastrip",
-                                     description = "Combine audio and video into metastrip?? ",
+                                     description = "Combine audio and video into metastrip on insertion into Masterscene",
                                      default=False )
 
 scnType.zoom = BoolProperty( name="Zoom",
-                                     description = "Zoom to the entire Clip after entering Edit Range? ",
+                                     description = "Zoom to the entire Clip after entering Edit Range",
                                      default=False )
 
 scnType.show_options = BoolProperty( name="Show Options",
@@ -638,15 +638,11 @@ class Insert_Strip_Masterscene(bpy.types.Operator):
         # Apply in and out points
         if (strip_to_insert.type == 'MOVIE' and masterscene.meta == True):
             bpy.ops.sequencer.meta_make()
-            strip_to_insert.frame_final_start = frame_final_start
-            strip_to_insert.frame_final_end = frame_final_end
-            strip_to_insert.channel = channel
-        else:
-            for selected_sequence in bpy.context.selected_sequences:
-                channel = selected_sequence.channel
-                selected_sequence.frame_final_start = frame_final_start
-                selected_sequence.frame_final_end = frame_final_end
-                selected_sequence.channel = channel
+        for selected_sequence in bpy.context.selected_sequences:
+            channel = selected_sequence.channel
+            selected_sequence.frame_final_start = frame_final_start
+            selected_sequence.frame_final_end = frame_final_end
+            selected_sequence.channel = channel
 
 class Insert_Strip(bpy.types.Operator):
     bl_idname = "moviemanager.insert_strip"
@@ -728,36 +724,8 @@ class Insert_Strip(bpy.types.Operator):
                     bpy.ops.sequencer.sound_strip_add(frame_start=current_frame, channel=channel, filepath=path)
 
             if (strip_type == 'MOVIE' and masterscene.meta == True):
-                bpy.ops.moviemanager.meta()
+                bpy.ops.sequencer.meta_make()
             return {'FINISHED'}
-
-
-class Meta(bpy.types.Operator):
-    bl_idname = "moviemanager.meta"
-    bl_label = "Meta"
-    bl_description = "Merge Audio and Video into meta strip"
-
-    def invoke(self, context, event):
-
-        channel = 100
-        for selected_sequence in bpy.context.selected_sequences:
-            if (selected_sequence.channel < channel):
-                channel = selected_sequence.channel
-
-        bpy.ops.sequencer.meta_make()
-        frame_final_start = bpy.context.scene.sequence_editor.active_strip.frame_final_start
-        frame_final_end = bpy.context.scene.sequence_editor.active_strip.frame_final_end
-
-        bpy.ops.sequencer.meta_toggle()
-        for selected_sequence in bpy.context.selected_sequences:
-            selected_sequence.frame_final_start = selected_sequence.frame_start
-            selected_sequence.frame_final_duration = selected_sequence.frame_duration
-        bpy.ops.sequencer.meta_toggle()
-        bpy.context.scene.sequence_editor.active_strip.frame_final_start = frame_final_start
-        bpy.context.scene.sequence_editor.active_strip.frame_final_end = frame_final_end
-        bpy.context.scene.sequence_editor.active_strip.channel = channel
-        return {'FINISHED'}
-
 
 class Unmeta(bpy.types.Operator):
     bl_idname = "moviemanager.unmeta"
@@ -901,7 +869,6 @@ def register():
     bpy.utils.register_class( Insert_Strip )
     bpy.utils.register_class( MovieManagerPanel )
     bpy.utils.register_class( Unmeta )
-    bpy.utils.register_class( Meta )
     bpy.utils.register_class( Hide_Operator)
 ### TrimTools ###
     bpy.utils.register_class( TrimToolsPanel )
@@ -920,7 +887,6 @@ def unregister():
     bpy.utils.unregister_class( Insert_Strip )
     bpy.utils.unregister_class( MovieManagerPanel )
     bpy.utils.unregister_class( Unmeta )
-    bpy.utils.unregister_class( Meta )
     bpy.utils.unregister_class( Hide_Operator)
 ### TrimTools ###
     bpy.utils.unregister_class( select_current )
