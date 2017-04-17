@@ -895,8 +895,8 @@ class snap_end (bpy.types.Operator):
     bl_description = "Snap the Clip to the current frame with it´s end"
 
     def invoke (self, context, event):
-        strip = bpy.context.scene.sequence_editor.active_strip
-        strip.frame_start = bpy.context.scene.frame_current - strip.frame_offset_start - strip.frame_final_duration
+        for selected_sequence in bpy.context.selected_sequences:
+            selected_sequence.frame_start = bpy.context.scene.frame_current - selected_sequence.frame_offset_start - selected_sequence.frame_final_duration
         return {'FINISHED'}
 
 def register():
@@ -930,7 +930,6 @@ def unregister():
     bpy.utils.unregister_class( Meta )
     bpy.utils.unregister_class( Hide_Operator)
 ### TrimTools ###
-    bpy.utils.unregister_class( FilePanel )
     bpy.utils.unregister_class( select_current )
     bpy.utils.unregister_class( cut_current )
     bpy.utils.unregister_class( trim_left )
