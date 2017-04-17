@@ -707,16 +707,12 @@ class Insert_Strip(bpy.types.Operator):
                 #Apply in and out points
                 if (strip_type == 'MOVIE' and bpy.context.scene.meta == True):
                     bpy.ops.sequencer.meta_make()
-                    bpy.context.scene.sequence_editor.active_strip.frame_start + scene.frame_start
-                    bpy.context.scene.sequence_editor.active_strip.frame_final_end = frame_end - end_offset + 1
-                    bpy.context.scene.sequence_editor.active_strip.channel = channel
-                else:
-                    for selected_sequene in bpy.context.selected_sequences:
-                        channel = scene.channel
-                        selected_sequene.frame_final_start = frame_start + scene.frame_start
-                        selected_sequene.frame_final_end = frame_end - end_offset + 1
-                        selected_sequene.frame_start = frame_start - scene.frame_start
-                        selected_sequene.channel = channel
+                for selected_sequene in bpy.context.selected_sequences:
+                    channel = scene.channel
+                    selected_sequene.frame_final_start = frame_start + scene.frame_start
+                    selected_sequene.frame_final_end = frame_end - end_offset + 1
+                    selected_sequene.frame_start = frame_start - scene.frame_start
+                    selected_sequene.channel = channel
             else:
                 if (strip_type == 'MOVIE'):
                     bpy.ops.sequencer.movie_strip_add(frame_start=current_frame, channel=channel, filepath=path)
