@@ -217,13 +217,12 @@ class CompPanel(bpy.types.Panel):
 
     @classmethod
     def poll(self, context):
-        if context.scene.sequence_editor.active_strip:
-            if context.scene.sequence_editor.active_strip.type \
-            in {'MOVIE', "IMAGE", "SCENE"}:
-                return context.scene.sequence_editor
+        try:
+            if (bpy.context.scene.sequence_editor.active_strip.type in {'MOVIE', "IMAGE", "SCENE"}):
+                return bpy.context.scene.sequence_editor
             else:
                 return False
-        else:
+        except:
             return False
      
     def draw(self, context):
