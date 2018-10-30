@@ -856,13 +856,27 @@ class snap_end (bpy.types.Operator):
         return {'FINISHED'}
 
 def define_hotkeys():
-    keymap_sequencer = bpy.data.window_managers[0].keyconfigs.active.keymaps['Sequencer'].keymap_items
+    keymaps = bpy.context.window_manager.keyconfigs.active.keymaps
+    keymap_sequencer = keymaps['Sequencer'].keymap_items
+    keymp_filebrowser = keymaps['File Browser Main'].keymap_items
+
+
+    # Edit Range
+    keymap_filebrowser.new('keymaps['Sequencer'].keymap_items',value='PRESS',
+               type='E',ctrl=False,alt=False,shift=False,oskey=False)
+    keymap_sequencer.new('moviemanager.switch_back_to_timeline',value='PRESS',
+               type='R',ctrl=False,alt=False,shift=True,oskey=False)
+    keymap_sequencer.new('moviemanager.insert_strip_masterscene',value='PRESS',
+               type='I',ctrl=False,alt=False,shift=False,oskey=False)
+
 
     # trimming
-    keymap.new('ht.trim_left',value='PRESS',
+    keymap_sequencer.new('ht.trim_left',value='PRESS',
                type='Q',ctrl=False,alt=False,shift=True,oskey=False)
-    keymap.new('ht.trim_right',value='PRESS',
+    keymap_sequencer.new('ht.trim_right',value='PRESS',
                type='W',ctrl=False,alt=False,shift=True,oskey=False)
+    keymap_sequencer.new('ht.snap_end',value='PRESS',
+               type='E',ctrl=False,alt=False,shift=True,oskey=False)
 
 def register():
     bpy.utils.register_class( Edit_Range_Operator )
@@ -874,6 +888,7 @@ def register():
     bpy.utils.register_class( MovieManagerPanel )
     bpy.utils.register_class( Unmeta )
     bpy.utils.register_class( Hide_Operator)
+    define_hotkeys()
 ### TrimTools ###
     bpy.utils.register_class( TrimToolsPanel )
     bpy.utils.register_class( select_current )
@@ -893,7 +908,7 @@ def unregister():
     bpy.utils.unregister_class( Unmeta )
     bpy.utils.unregister_class( Hide_Operator)
 ### TrimTools ###
-    bpy.utils.register_class( TrimToolsPanel )
+    bpy.utils.unregister_class( TrimToolsPanel )
     bpy.utils.unregister_class( select_current )
     bpy.utils.unregister_class( cut_current )
     bpy.utils.unregister_class( trim_left )
