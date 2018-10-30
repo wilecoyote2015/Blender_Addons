@@ -33,6 +33,7 @@ bl_info = {
 import bpy, os
 from os import listdir
 from os.path import isfile, join
+import glob
 
 ##TODO
 # instead of setting area type for non-vse to file browser in edit range operator, save the current area type in a variable and switch back to it.
@@ -171,6 +172,9 @@ scnType.p75 = BoolProperty( name="75%",
 scnType.p100 = BoolProperty( name="100%",
                                      description = "Proxy sizes to be created",
                                      default=False )
+scnType.proxy_recursive = BoolProperty(name="Proxy: include subfoders",
+                                     description = 'Generate proxies also for files in subfolders',
+                                     default=False )
 
 #Is it the timeline scene?
 scnType.timeline = BoolProperty( name="Timeline",
@@ -208,6 +212,30 @@ scnType.select_audio = BoolProperty( name="Select Audio",
                                      default=True )
 
 ####### Panels #####
+class MovieManagerPanelBrowser(bpy.types.Panel):
+    bl_space_type = "FILE_BROWSER"
+    bl_region_type = "TOOLS"
+    bl_label = "Movie Manager"
+
+    def draw(self, context):
+        scn = bpy.context.scene
+        layout = self.layout
+
+        row = layout.row()
+        col = row.column()
+        col.prop( scn, "p100" )
+        row.prop( scn, "p75" )
+        row.prop( scn, "p50" )
+        row.prop( scn, "p25" )
+        row = layout.row()
+        col = row.column()
+        col.operator( "moviemanager.proxy")
+        row = layout.row()
+        row.prop(scn, 'proxy_recursive')
+
+        row = layout.row()
+        col = row.column()
+        col.operator( "moviemanager.edit_range" )
 
 class MovieManagerPanel(bpy.types.Panel):
     bl_space_type = "SEQUENCE_EDITOR"
@@ -218,12 +246,8 @@ class MovieManagerPanel(bpy.types.Panel):
         scn = bpy.context.scene
         layout = self.layout
 
-
-        row = layout.row()
-        col = row.column()
-        col.operator( "moviemanager.edit_range" )
-
         if not bpy.context.scene.timeline:
+            row = layout.row()
             row.operator( "moviemanager.switch_back_to_timeline" )
 
             if bpy.context.scene.source_path != "none":
@@ -241,20 +265,14 @@ class MovieManagerPanel(bpy.types.Panel):
         if not bpy.context.scene.timeline:
             col.operator( "moviemanager.insert_strip_masterscene" )
 
+        row = layout.row()
+        col = row.column()
+        col.operator( "moviemanager.unmeta" )
+        row.operator( "moviemanager.meta" )
+
         if not bpy.context.scene.timeline:
             row = layout.row()
-            col = row.column()
-            col.operator( "moviemanager.proxy")
-
-            row = layout.row()
-            col = row.column()
-            col.operator( "moviemanager.unmeta" )
-            row.operator( "moviemanager.meta" )
-
-
-            if not bpy.context.scene.timeline:
-                row = layout.row()
-                row.operator( "moviemanager.set_timeline" )
+            row.operator( "moviemanager.set_timeline" )
 
         row = layout.row()
 
@@ -280,17 +298,6 @@ class MovieManagerPanel(bpy.types.Panel):
 
                 row = layout.row()
                 row.prop( scn, "meta" )
-
-                row = layout.row()
-                col = row.column()
-                col.prop( scn, "p100" )
-                row.prop( scn, "p75" )
-                row.prop( scn, "p50" )
-                row.prop( scn, "p25" )
-        else:
-            row = layout.row()
-            col = row.column()
-            col.operator( "moviemanager.set_timeline" )
 
 class TrimToolsPanel(bpy.types.Panel):
     bl_space_type = "SEQUENCE_EDITOR"
@@ -400,24 +407,38 @@ class Proxy_Operator(bpy.types.Operator):
 
         #Change the current area to VSE so that we can also call the operator from any other area type.
         bool_IsVSE = True
+        native_area_type = 'SEQUENCE_EDITOR'
         if (bpy.context.area.type != 'SEQUENCE_EDITOR'):
+            native_area_type = bpy.context.area.type
             bpy.context.area.type = 'SEQUENCE_EDITOR'
             bool_IsVSE = False
+
+        # store whether to search files recursively from current scene, as qID will have it
+        # set to False
+        proxy_recursive = bpy.context.scene.proxy_recursive
 
         #Check if scene exists, if not -> new
         self.switch_to_scene(scene_name='qID')
 
         ## Get files in directory
-        filenames = [ f for f in listdir(directory) if isfile(join(directory,f)) ]
+        if proxy_recursive:
+            filenames = []
+            for root, dirs, files in os.walk(directory):
+                filenames.extend(files)
+        else:
+            filenames = [ f for f in listdir(directory) if isfile(join(directory,f)) ]
 
-        self.create_strips_and_set_proxy_settings(masterscene, directory, filenames)
+        strips_created = self.create_strips_and_set_proxy_settings(masterscene, directory, filenames)
 
-        bpy.ops.sequencer.select_all(action='SELECT')
-        bpy.ops.sequencer.rebuild_proxy()
-        bpy.ops.sequencer.delete()
+        if strips_created:
+            bpy.ops.sequencer.select_all(action='SELECT')
+            bpy.ops.sequencer.rebuild_proxy()
+            bpy.ops.sequencer.delete()
+        else:
+            self.report({'INFO'},'No video files found.')
 
         if (bool_IsVSE == False):
-            bpy.context.area.type = 'FILE_BROWSER'
+            bpy.context.area.type = native_area_type
 
         Switch_back_to_Timeline_Operator.invoke(self, context, event)
 
@@ -443,11 +464,13 @@ class Proxy_Operator(bpy.types.Operator):
         bpy.context.screen.scene = scene
 
     def create_strips_and_set_proxy_settings(self, masterscene, directory, filenames):
+        strips_created = False
         for filename in filenames:
             path =  os.path.join(directory, filename)
             strip_type = detect_strip_type(filename)
 
             if (strip_type == 'MOVIE'):
+                strips_created = True
                 bpy.ops.sequencer.movie_strip_add(filepath=path)
                 for sequence in bpy.context.scene.sequence_editor.sequences:
                     if (sequence.type == 'MOVIE'):
@@ -460,6 +483,8 @@ class Proxy_Operator(bpy.types.Operator):
                             sequence.proxy.build_75 = True
                         if (masterscene.p100 == True):
                             sequence.proxy.build_100 = True
+
+        return strips_created
 
 
 class Edit_Range_Operator(bpy.types.Operator):
@@ -858,11 +883,11 @@ class snap_end (bpy.types.Operator):
 def define_hotkeys():
     keymaps = bpy.context.window_manager.keyconfigs.active.keymaps
     keymap_sequencer = keymaps['Sequencer'].keymap_items
-    keymp_filebrowser = keymaps['File Browser Main'].keymap_items
+    keymap_filebrowser = keymaps['File Browser Main'].keymap_items
 
 
     # Edit Range
-    keymap_filebrowser.new('keymaps['Sequencer'].keymap_items',value='PRESS',
+    keymap_filebrowser.new('moviemanager.edit_range',value='PRESS',
                type='E',ctrl=False,alt=False,shift=False,oskey=False)
     keymap_sequencer.new('moviemanager.switch_back_to_timeline',value='PRESS',
                type='R',ctrl=False,alt=False,shift=True,oskey=False)
@@ -877,6 +902,8 @@ def define_hotkeys():
                type='W',ctrl=False,alt=False,shift=True,oskey=False)
     keymap_sequencer.new('ht.snap_end',value='PRESS',
                type='E',ctrl=False,alt=False,shift=True,oskey=False)
+    keymap_sequencer.new('ht.select_current',value='PRESS',
+               type='C',ctrl=False,alt=False,shift=True,oskey=False)
 
 def register():
     bpy.utils.register_class( Edit_Range_Operator )
@@ -888,6 +915,7 @@ def register():
     bpy.utils.register_class( MovieManagerPanel )
     bpy.utils.register_class( Unmeta )
     bpy.utils.register_class( Hide_Operator)
+    bpy.utils.register_class(MovieManagerPanelBrowser)
     define_hotkeys()
 ### TrimTools ###
     bpy.utils.register_class( TrimToolsPanel )
@@ -907,6 +935,7 @@ def unregister():
     bpy.utils.unregister_class( MovieManagerPanel )
     bpy.utils.unregister_class( Unmeta )
     bpy.utils.unregister_class( Hide_Operator)
+    bpy.utils.unregister_class(MovieManagerPanelBrowser)
 ### TrimTools ###
     bpy.utils.unregister_class( TrimToolsPanel )
     bpy.utils.unregister_class( select_current )
