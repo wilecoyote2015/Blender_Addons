@@ -223,10 +223,10 @@ class MovieManagerPanel(bpy.types.Panel):
         col = row.column()
         col.operator( "moviemanager.edit_range" )
 
-        if (bpy.context.scene.timeline == False):
+        if not bpy.context.scene.timeline:
             row.operator( "moviemanager.switch_back_to_timeline" )
 
-            if (bpy.context.scene.source_path != "none"):
+            if bpy.context.scene.source_path != "none":
                 row = layout.row()
                 col = row.column()
                 col.operator( "moviemanager.hide" )
@@ -235,13 +235,13 @@ class MovieManagerPanel(bpy.types.Panel):
 
         row = layout.row()
         col = row.column()
-        if (bpy.context.scene.timeline == True):
+        if bpy.context.scene.timeline:
             col.operator( "moviemanager.insert_strip" )
 
-        if (bpy.context.scene.timeline == False):
+        if not bpy.context.scene.timeline:
             col.operator( "moviemanager.insert_strip_masterscene" )
 
-        if (bpy.context.scene.timeline == True):
+        if not bpy.context.scene.timeline:
             row = layout.row()
             col = row.column()
             col.operator( "moviemanager.proxy")
@@ -252,16 +252,16 @@ class MovieManagerPanel(bpy.types.Panel):
             row.operator( "moviemanager.meta" )
 
 
-            if (bpy.context.scene.timeline == False):
+            if not bpy.context.scene.timeline:
                 row = layout.row()
                 row.operator( "moviemanager.set_timeline" )
 
         row = layout.row()
 
-        if (bpy.context.scene.timeline == True):
+        if bpy.context.scene.timeline:
             row.prop( scn, "show_options" )
 
-            if (bpy.context.scene.show_options == True):
+            if bpy.context.scene.show_options:
 
                 row = layout.row()
                 col = row.column()
@@ -339,21 +339,21 @@ class Hide_Operator (bpy.types.Operator):
     bl_description = "Hide clips that are not useful"
 
     def invoke (self, context, event):
-        for i in bpy.data.scenes:
-            source_path = i.source_path
+        for scene_clip in bpy.data.scenes:
+            source_path = scene_clip.source_path
             if (source_path != "none"):
-                self.hide_file(source_path)
+                self.hide_file(source_path, scene_clip)
 
         return {'FINISHED'}
 
-    def hide_file(self, filepath):
+    def hide_file(self, filepath, scene_clip):
         path_directory, filename = os.path.split(filepath)
 
         changed = False
-        if (filename[0] == "." and i.good_clip == True):
+        if (filename[0] == "." and scene_clip.good_clip == True):
             filename_new = filename[1:]
             changed = True
-        elif (filename[0] != "." and i.good_clip == False):
+        elif (filename[0] != "." and scene_clip.good_clip == False):
             filename_new = "." + filename
             changed = True
         if (changed == True):
@@ -854,6 +854,13 @@ class snap_end (bpy.types.Operator):
         for selected_sequence in bpy.context.selected_sequences:
             selected_sequence.frame_start = bpy.context.scene.frame_current - selected_sequence.frame_offset_start - selected_sequence.frame_final_duration
         return {'FINISHED'}
+
+def define_hotkeys():
+    keymap = bpy.data.window_managers[0].keyconfigs.active.keymaps['Mesh'].keymap_items
+
+    # trimming
+    keymap.new('ht.trim_left',value='PRESS',
+               type='Q',ctrl=False,alt=False,shift=True,oskey=False)
 
 def register():
     bpy.utils.register_class( Edit_Range_Operator )
