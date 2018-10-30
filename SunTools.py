@@ -340,6 +340,21 @@ class Set_Timeline (bpy.types.Operator):
 
         return {'FINISHED'}
 
+class CleanupScenes (bpy.types.Operator):
+    bl_idname = "moviemanager.clean"
+    bl_label = "Clean Scenes"
+    bl_description = "Delete scenes referring to clips that don't exists"
+
+    def invoke (self, context, event):
+        for scene_clip in bpy.data.scenes:
+            source_path = scene_clip.source_path
+            if source_path is not None:
+                # check if strip file exists
+                if not os.path.isfile(source_path):
+                    bpy.data.scenes.remove(scene_clip, True)
+
+        return {'FINISHED'}
+
 class Hide_Operator (bpy.types.Operator):
     bl_idname = "moviemanager.hide"
     bl_label = "Hide"
