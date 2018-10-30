@@ -444,7 +444,9 @@ class Proxy_Operator(bpy.types.Operator):
         if proxy_recursive:
             filepaths = []
             for root, dirs, files in os.walk(directory):
-                filepaths.extend([os.path.join(root, f) for f in files])
+                # only add files if they are not in a proxy directory
+                if 'BL_proxy' not in root:
+                    filepaths.extend([os.path.join(root, f) for f in files])
         else:
             filepaths = [ os.path.join(directory, f) for f in listdir(directory) if isfile(join(directory,f)) ]
 
