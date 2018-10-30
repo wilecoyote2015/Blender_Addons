@@ -442,13 +442,13 @@ class Proxy_Operator(bpy.types.Operator):
 
         ## Get files in directory
         if proxy_recursive:
-            filenames = []
+            filepaths = []
             for root, dirs, files in os.walk(directory):
-                filenames.extend(files)
+                filepaths.extend([os.path.join(root, f) for f in files])
         else:
-            filenames = [ f for f in listdir(directory) if isfile(join(directory,f)) ]
+            filepaths = [ os.path.join(directory, f) for f in listdir(directory) if isfile(join(directory,f)) ]
 
-        strips_created = self.create_strips_and_set_proxy_settings(masterscene, directory, filenames)
+        strips_created = self.create_strips_and_set_proxy_settings(masterscene, filepaths)
 
         if strips_created:
             bpy.ops.sequencer.select_all(action='SELECT')
@@ -483,13 +483,14 @@ class Proxy_Operator(bpy.types.Operator):
         scene = bpy.data.scenes[scene_name]
         bpy.context.screen.scene = scene
 
-    def create_strips_and_set_proxy_settings(self, masterscene, directory, filenames):
+    def create_strips_and_set_proxy_settings(self, masterscene, filepaths):
         strips_created = False
-        for filename in filenames:
-            path =  os.path.join(directory, filename)
+        for path in filepaths:
+            filename = os.path.basename(path)
             strip_type = detect_strip_type(filename)
 
             if (strip_type == 'MOVIE'):
+                print('creating proxy for {}'.format(path))
                 strips_created = True
                 bpy.ops.sequencer.movie_strip_add(filepath=path)
                 for sequence in bpy.context.scene.sequence_editor.sequences:
