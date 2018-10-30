@@ -262,6 +262,11 @@ class MovieManagerPanel(bpy.types.Panel):
         if bpy.context.scene.timeline:
             col.operator( "moviemanager.insert_strip" )
 
+            row = layout.row()
+            col = row.column()
+            col.operator( "moviemanager.clean" )
+
+
         if not bpy.context.scene.timeline:
             col.operator( "moviemanager.insert_strip_masterscene" )
 
@@ -931,6 +936,7 @@ def register():
     bpy.utils.register_class( Unmeta )
     bpy.utils.register_class( Hide_Operator)
     bpy.utils.register_class(MovieManagerPanelBrowser)
+    bpy.utils.register_class(CleanupScenes)
     define_hotkeys()
 ### TrimTools ###
     bpy.utils.register_class( TrimToolsPanel )
@@ -951,6 +957,7 @@ def unregister():
     bpy.utils.unregister_class( Unmeta )
     bpy.utils.unregister_class( Hide_Operator)
     bpy.utils.unregister_class(MovieManagerPanelBrowser)
+    bpy.utils.unregister_class(CleanupScenes)
 ### TrimTools ###
     bpy.utils.unregister_class( TrimToolsPanel )
     bpy.utils.unregister_class( select_current )
