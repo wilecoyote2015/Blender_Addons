@@ -856,11 +856,13 @@ class snap_end (bpy.types.Operator):
         return {'FINISHED'}
 
 def define_hotkeys():
-    keymap = bpy.data.window_managers[0].keyconfigs.active.keymaps['Mesh'].keymap_items
+    keymap_sequencer = bpy.data.window_managers[0].keyconfigs.active.keymaps['Sequencer'].keymap_items
 
     # trimming
     keymap.new('ht.trim_left',value='PRESS',
                type='Q',ctrl=False,alt=False,shift=True,oskey=False)
+    keymap.new('ht.trim_right',value='PRESS',
+               type='W',ctrl=False,alt=False,shift=True,oskey=False)
 
 def register():
     bpy.utils.register_class( Edit_Range_Operator )
@@ -891,6 +893,7 @@ def unregister():
     bpy.utils.unregister_class( Unmeta )
     bpy.utils.unregister_class( Hide_Operator)
 ### TrimTools ###
+    bpy.utils.register_class( TrimToolsPanel )
     bpy.utils.unregister_class( select_current )
     bpy.utils.unregister_class( cut_current )
     bpy.utils.unregister_class( trim_left )
