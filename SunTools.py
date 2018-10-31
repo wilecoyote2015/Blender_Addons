@@ -16,6 +16,15 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# todo: Die Einstellung fuer preserve range entfernen. Die range sollte immer preserved weren
+# todo: Moeglichkeit, wenn mehrere strips gecomposited werden, die gleiche omposition
+# fuer alle strips mit gleicher quelle zu nehmen
+# todo: Composites nicht hinzufuegen, sondern die eigentlichen strips ersetzen
+# dabei aber einen toggle button, der die composites wieder durch die strips ersetzt.
+# dafuer koennte man in der komposition ja die source datei speichern und dann
+# kann man ganz einfach hin- und her switchen. dafuer muss man aber auch die quellen
+# fuer alle anderen clips ersetzen!
+
 
 bl_info = {
     "name": "SunTools",
