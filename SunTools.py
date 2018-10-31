@@ -919,8 +919,8 @@ def define_hotkeys():
 
 
     # Edit Range
-    keymap_filebrowser.new('moviemanager.edit_range',value='PRESS',
-               type='E',ctrl=False,alt=False,shift=False,oskey=False)
+    keymap_filebrowser.new('moviemanager.edit_range',value='DOUBLE_CLICK',
+               type='LEFTMOUSE',ctrl=False,alt=False,shift=False,oskey=False)
     keymap_sequencer.new('moviemanager.switch_back_to_timeline',value='PRESS',
                type='R',ctrl=False,alt=False,shift=True,oskey=False)
     keymap_sequencer.new('moviemanager.insert_strip_masterscene',value='PRESS',
