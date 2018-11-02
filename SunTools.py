@@ -916,28 +916,31 @@ class snap_end (bpy.types.Operator):
         return {'FINISHED'}
 
 def define_hotkeys():
-    keymaps = bpy.context.window_manager.keyconfigs.active.keymaps
-    keymap_sequencer = keymaps['Sequencer'].keymap_items
-    keymap_filebrowser = keymaps['File Browser Main'].keymap_items
+    keymaps = bpy.context.window_manager.keyconfigs.user.keymaps
+    keymap_sequencer = keymaps['Sequencer']
+    #keymap_sequencer = keymaps.new('Sequencer')
+    keys_sequencer = keymap_sequencer.keymap_items
+    keymap_filebrowser = keymaps['File Browser Main']
+    #keymap_filebrowser = keymaps.new('File Browser Main')
+    keys_filebrowser = keymap_filebrowser.keymap_items
 
 
     # Edit Range
-    keymap_filebrowser.new('moviemanager.edit_range',value='DOUBLE_CLICK',
+    keys_filebrowser.new('moviemanager.edit_range',value='DOUBLE_CLICK',
                type='LEFTMOUSE',ctrl=False,alt=False,shift=False,oskey=False)
-    keymap_sequencer.new('moviemanager.switch_back_to_timeline',value='PRESS',
+    keys_sequencer.new('moviemanager.switch_back_to_timeline',value='PRESS',
                type='R',ctrl=False,alt=False,shift=True,oskey=False)
-    keymap_sequencer.new('moviemanager.insert_strip_masterscene',value='PRESS',
+    keys_sequencer.new('moviemanager.insert_strip_masterscene',value='PRESS',
                type='I',ctrl=False,alt=False,shift=False,oskey=False)
 
-
     # trimming
-    keymap_sequencer.new('ht.trim_left',value='PRESS',
+    keys_sequencer.new('ht.trim_left',value='PRESS',
                type='Q',ctrl=False,alt=False,shift=True,oskey=False)
-    keymap_sequencer.new('ht.trim_right',value='PRESS',
+    keys_sequencer.new('ht.trim_right',value='PRESS',
                type='W',ctrl=False,alt=False,shift=True,oskey=False)
-    keymap_sequencer.new('ht.snap_end',value='PRESS',
+    keys_sequencer.new('ht.snap_end',value='PRESS',
                type='E',ctrl=False,alt=False,shift=True,oskey=False)
-    keymap_sequencer.new('ht.select_current',value='PRESS',
+    keys_sequencer.new('ht.select_current',value='PRESS',
                type='C',ctrl=False,alt=False,shift=True,oskey=False)
 
 def register():
@@ -952,7 +955,6 @@ def register():
     bpy.utils.register_class( Hide_Operator)
     bpy.utils.register_class(MovieManagerPanelBrowser)
     bpy.utils.register_class(CleanupScenes)
-    define_hotkeys()
 ### TrimTools ###
     bpy.utils.register_class( TrimToolsPanel )
     bpy.utils.register_class( select_current )
@@ -960,6 +962,8 @@ def register():
     bpy.utils.register_class( trim_left )
     bpy.utils.register_class( trim_right )
     bpy.utils.register_class( snap_end )
+
+    define_hotkeys()
 
 def unregister():
     bpy.utils.unregister_class( Edit_Range_Operator )
@@ -980,6 +984,7 @@ def unregister():
     bpy.utils.unregister_class( trim_left )
     bpy.utils.unregister_class( trim_right )
     bpy.utils.unregister_class( snap_end )
+
 
 if __name__ == "__main__":
     register()
