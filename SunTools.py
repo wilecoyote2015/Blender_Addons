@@ -659,13 +659,16 @@ class Insert_Strip_Masterscene(bpy.types.Operator):
             if (strip_to_insert.type == 'MOVIE'):
                 bpy.ops.sequencer.movie_strip_add(frame_start=frame_start, channel=channel, overlap=True, filepath=strip_to_insert.filepath)
             elif (strip_to_insert.type == 'SOUND'):
-                bpy.ops.sequencer.sound_strip_add(frame_start=frame_start, channel=channel, overlap=True, filepath=strip_to_insert.filepath)
+                bpy.ops.sequencer.sound_strip_add(frame_start=frame_start, channel=channel, overlap=True, filepath=strip_to_insert.sound.filepath)
             self.apply_in_and_out_points(masterscene, strip_to_insert, frame_final_start, frame_final_end, channel)
 
             # change visible scene back
             bpy.context.screen.scene = bpy.data.scenes[range_scene_name]
 
             return {'FINISHED'}
+        else:
+            self.report({'ERROR_INVALID_INPUT'}, 'Please select a sound or movie strip.')
+            return {'CANCELLED'}
 
     def get_destination_start_end_frames_and_channel(self, range_scene_name, strip_to_insert):
         # Get current frame and channel.
