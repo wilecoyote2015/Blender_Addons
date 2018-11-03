@@ -84,6 +84,8 @@ class ESWC_Info(bpy.types.PropertyGroup):
         default="",
         description="Name of the composite")
 
+
+
     bool_show_options = BoolProperty(
         name="Show options",
         description="Show options",
@@ -110,6 +112,15 @@ class ESWC_Info(bpy.types.PropertyGroup):
         description="You can add a custom node group to the new compositions \
         automatically",
         default=False)
+
+    # the input path of the movie file the composition was created from
+    # if it is empty, the operators infer that the current scene
+    # is not a composition.
+    movie_input = StringProperty(
+        name="Movie strip input",
+        default="",
+        description="the input path of the movie file the composition was \
+            created from")
 
     bool_auto_proxy = BoolProperty(
         name="Automatic proxy settings",
@@ -719,6 +730,12 @@ def register():
     # eswc_info
     bpy.types.Scene.eswc_info = PointerProperty(type=ESWC_Info)
 
+    # strip composite scene name; used to interchange movies and composites
+    bpy.types.ImageSequence.CompositeScene = bpy.props.StringProperty(
+        name="Composite Scene",
+        description="The name of the composite scene associated to the strip",
+        default=""
+    )
 
 def unregister():
     bpy.utils.unregister_module(__name__)
