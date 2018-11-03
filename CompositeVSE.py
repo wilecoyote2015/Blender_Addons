@@ -736,6 +736,16 @@ def register():
         description="The name of the composite scene associated to the strip",
         default=""
     )
+    bpy.types.MovieSequence.CompositeScene = bpy.props.StringProperty(
+        name="Composite Scene",
+        description="The name of the composite scene associated to the strip",
+        default=""
+    )
+    bpy.types.MovieClipSequence.CompositeScene = bpy.props.StringProperty(
+        name="Composite Scene",
+        description="The name of the composite scene associated to the strip",
+        default=""
+    )
 
 def unregister():
     bpy.utils.unregister_module(__name__)
