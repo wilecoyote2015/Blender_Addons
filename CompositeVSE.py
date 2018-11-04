@@ -15,6 +15,47 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
+"""
+TODO: Compositinng mit den den Ganzen sachen:
+ - Beim Composite erstellen:
+    - Wenn Reuse Composite:
+        - Nach Composites, die den selben Quellclip haben, suchen
+            - Wenn keine vorhanden:
+                - Neue Composition erstellen
+                - Clipquelle in Composite speichern
+            - Wenn eine vorhanden: Diesen nehmen
+            - Wenn mehrere vorhanden: Nichts tun und am ende warnung ausgeben.
+            Dass diese(r) clip(s) nicht gecomposited werden konnten,
+            sodass man das manuell mit nur einer selektion machen soll.
+    - Sonst:
+        - Neue Comp erstellen
+        - Clipquelle in Comp speichern
+
+    - Wenn im Comp=Preview Modus:
+        - Clipnamen(oder besser ID) speichern
+        - Clip loeschen
+        - Composite clip einfuegen
+        - Quellen aller Effektstrips updaten
+    - Sonst:
+        - Compname im Clip speichern
+
+- Beim Wechsel zwischen Comp-Preview und normal:
+    - Von Comp-Preview:
+        - Comp-Strip loeschen
+        - Movieclip mit der Quelldatei erstellen
+        - Quellen aller Effektstrips updaten
+    - Nach Comp-Preview:
+        - Comp-Name von Moviestrip holen
+        - Moviestrip loeschen
+        - Composite einfuegen
+        - Quellen aller Effektstrips updaten
+
+Notizen:
+- Allgemeine Funktion  fuer das Einfuegen einer existierenden Komposition
+    Als ersatz eines Movieclips schreiben. Die wird beim Wechsel und beim Einfuegen verwendet.
+- Beim einfuegen von CLips gibt es die Option "replace_sel". Kann man die verwenden?
+
+"""
 
 # TODO: Correctly handle image sequences which start at a frame number >0. The correct offset has to be set.
 
@@ -460,6 +501,8 @@ class S_CompOperator(bpy.types.Operator):
         eswc_info = current_scene.eswc_info
 
         # set comp_name
+        # TODO: Collection of string properties holding the strip names
+        # TODO: give strip in timeline the name of the original movie strip?
         new_scene.eswc_info.comp_name = original_strip.name
 
         # Change render settings for new scene to match original scene
