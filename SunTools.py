@@ -966,7 +966,7 @@ def register():
     bpy.utils.register_class( trim_right )
     bpy.utils.register_class( snap_end )
 
-    define_hotkeys()
+    # define_hotkeys()
 
 def unregister():
     bpy.utils.unregister_class( Edit_Range_Operator )
