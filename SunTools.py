@@ -238,13 +238,13 @@ class MovieManagerPanelBrowser(bpy.types.Panel):
         row.prop( scn, "p25" )
         row = layout.row()
         col = row.column()
-        col.operator( "moviemanager.proxy")
+        col.operator( "file.moviemanager_proxy")
         row = layout.row()
         row.prop(scn, 'proxy_recursive')
 
         row = layout.row()
         col = row.column()
-        col.operator( "moviemanager.edit_range" )
+        col.operator( "file.moviemanager_edit_range" )
 
 class MovieManagerPanel(bpy.types.Panel):
     bl_space_type = "SEQUENCE_EDITOR"
@@ -257,36 +257,36 @@ class MovieManagerPanel(bpy.types.Panel):
 
         if not bpy.context.scene.timeline:
             row = layout.row()
-            row.operator( "moviemanager.switch_back_to_timeline" )
+            row.operator( "sequencer.moviemanager_switch_back_to_timeline" )
 
             if bpy.context.scene.source_path != "none":
                 row = layout.row()
                 col = row.column()
-                col.operator( "moviemanager.hide" )
+                col.operator( "sequencer.moviemanager_hide" )
                 row.prop(scn, "good_clip" )
 
 
         row = layout.row()
         col = row.column()
         if bpy.context.scene.timeline:
-            col.operator( "moviemanager.insert_strip" )
+            col.operator( "sequencer.moviemanager_insert_strip" )
 
             row = layout.row()
             col = row.column()
-            col.operator( "moviemanager.clean" )
+            col.operator( "sequencer.moviemanager_clean" )
 
 
         if not bpy.context.scene.timeline:
-            col.operator( "moviemanager.insert_strip_masterscene" )
+            col.operator( "sequencer.moviemanager_insert_strip_masterscene" )
 
         row = layout.row()
         col = row.column()
-        col.operator( "moviemanager.unmeta" )
-        row.operator( "moviemanager.meta" )
+        col.operator( "sequencer.moviemanager_unmeta" )
+        # row.operator( "moviemanager.meta" )
 
         if not bpy.context.scene.timeline:
             row = layout.row()
-            row.operator( "moviemanager.set_timeline" )
+            row.operator( "sequencer.moviemanager_set_timeline" )
 
         row = layout.row()
 
@@ -325,24 +325,24 @@ class TrimToolsPanel(bpy.types.Panel):
         row = layout.row()
         col = row.column()
 
-        col.operator( "ht.select_current" )
+        col.operator( "sequencer.trimtools_select_current" )
         row.prop( scn, "select_audio" )
 
         row = layout.row()
         col = row.column()
 
-        col.operator( "ht.cut_current" )
-        row.operator( "ht.snap_end" )
+        col.operator( "sequencer.trimtools_cut_current" )
+        row.operator( "sequencer.trimtools_snap_end" )
 
         row = layout.row()
         col = row.column()
-        col.operator( "ht.trim_left" )
-        row.operator( "ht.trim_right" )
+        col.operator( "sequencer.trimtools_trim_left" )
+        row.operator( "sequencer.trimtools_trim_right" )
 
 ##### MovieManager Operators ####
 
 class Set_Timeline (bpy.types.Operator):
-    bl_idname = "moviemanager.set_timeline"
+    bl_idname = "sequencer.moviemanager_set_timeline"
     bl_label = "Set as Timeline"
     bl_description = "Set this scene as Timeline"
 
@@ -355,7 +355,7 @@ class Set_Timeline (bpy.types.Operator):
         return {'FINISHED'}
 
 class CleanupScenes (bpy.types.Operator):
-    bl_idname = "moviemanager.clean"
+    bl_idname = "sequencer.moviemanager_clean"
     bl_label = "Clean Scenes"
     bl_description = "Delete scenes referring to clips that don't exists"
 
@@ -370,7 +370,7 @@ class CleanupScenes (bpy.types.Operator):
         return {'FINISHED'}
 
 class Hide_Operator (bpy.types.Operator):
-    bl_idname = "moviemanager.hide"
+    bl_idname = "sequencer.moviemanager_hide"
     bl_label = "Hide"
     bl_description = "Hide clips that are not useful"
 
@@ -410,7 +410,7 @@ class Hide_Operator (bpy.types.Operator):
 class Proxy_Operator(bpy.types.Operator):
     """ Automatically create proxies with given settings for all strips in the directory
     """
-    bl_idname = "moviemanager.proxy"
+    bl_idname = "file.moviemanager_proxy"
     bl_label = "Create Proxies"
 
     def invoke(self, context, event ):
@@ -462,6 +462,7 @@ class Proxy_Operator(bpy.types.Operator):
         strips_created = self.create_strips_and_set_proxy_settings(masterscene, filepaths)
 
         if strips_created:
+            self.report({'INFO'}, 'Generating Proxies. Blender freezes until job is finished.')
             bpy.ops.sequencer.select_all(action='SELECT')
             bpy.ops.sequencer.rebuild_proxy()
             bpy.ops.sequencer.delete()
@@ -472,6 +473,8 @@ class Proxy_Operator(bpy.types.Operator):
             bpy.context.area.type = native_area_type
 
         Switch_back_to_Timeline_Operator.invoke(self, context, event)
+
+        self.report({'INFO'}, 'Finished proxy generation.')
 
         return {'FINISHED'}
 
@@ -520,7 +523,7 @@ class Proxy_Operator(bpy.types.Operator):
 
 
 class Edit_Range_Operator(bpy.types.Operator):
-    bl_idname = "moviemanager.edit_range"
+    bl_idname = "file.moviemanager_edit_range"
     bl_label = "Edit Range"
     bl_description = "Edit the Range of the selected clip in the File Browser. Use the new scene's Start and end Frame"
 
@@ -614,7 +617,7 @@ class Edit_Range_Operator(bpy.types.Operator):
         return new_scene
 
 class Switch_back_to_Timeline_Operator(bpy.types.Operator):
-    bl_idname = "moviemanager.switch_back_to_timeline"
+    bl_idname = "sequencer.moviemanager_switch_back_to_timeline"
     bl_label = "Get Back"
 
     def invoke(self, context, event ):
@@ -637,7 +640,7 @@ class Switch_back_to_Timeline_Operator(bpy.types.Operator):
 
 
 class Insert_Strip_Masterscene(bpy.types.Operator):
-    bl_idname = "moviemanager.insert_strip_masterscene"
+    bl_idname = "sequencer.moviemanager_insert_strip_masterscene"
     bl_label = "Insert into editing scene"
     bl_description = "Insert the selected Strip into the Timeline of the Editing Scene"
 
@@ -704,7 +707,7 @@ class Insert_Strip_Masterscene(bpy.types.Operator):
             selected_sequence.channel = channel
 
 class Insert_Strip(bpy.types.Operator):
-    bl_idname = "moviemanager.insert_strip"
+    bl_idname = "sequencer.moviemanager_insert_strip"
     bl_label = "Insert selected File"
     bl_description = "Insert the selected File into the Timeline"
 
@@ -783,7 +786,7 @@ class Insert_Strip(bpy.types.Operator):
 
 
 class Unmeta(bpy.types.Operator):
-    bl_idname = "moviemanager.unmeta"
+    bl_idname = "sequencer.moviemanager_unmeta"
     bl_label = "Unmeta"
     bl_description = "Separate Audio and Video"
 
@@ -816,7 +819,7 @@ class Unmeta(bpy.types.Operator):
 ####### TrimTools Operators ########
 
 class select_current (bpy.types.Operator):
-    bl_idname = "ht.select_current"
+    bl_idname = "sequencer.trimtools_select_current"
     bl_label = "Select current Strip"
     bl_description = "Select the Strip on the current frame"
 
@@ -870,12 +873,12 @@ class select_current (bpy.types.Operator):
 
 
 class cut_current (bpy.types.Operator):
-    bl_idname = "ht.cut_current"
+    bl_idname = "sequencer.trimtools_cut_current"
     bl_label = "Cut current Strip"
     bl_description = "Cut the Strip on the current frame"
 
     def invoke (self, context, event):
-        bpy.ops.ht.select_current()
+        bpy.ops.sequencer.trimtools_select_current()
 
         current_frame = bpy.context.scene.frame_current
         bpy.ops.sequencer.cut(frame=current_frame)
@@ -884,7 +887,7 @@ class cut_current (bpy.types.Operator):
 
 
 class trim_left (bpy.types.Operator):
-    bl_idname = "ht.trim_left"
+    bl_idname = "sequencer.trimtools_trim_left"
     bl_label = "Trim Left"
     bl_description = "Set the selected clip's starting frame to current frame"
 
@@ -895,7 +898,7 @@ class trim_left (bpy.types.Operator):
 
 
 class trim_right (bpy.types.Operator):
-    bl_idname = "ht.trim_right"
+    bl_idname = "sequencer.trimtools_trim_right"
     bl_label = "Trim Right"
     bl_description = "Set the selected clip's ending frame to current frame"
 
@@ -906,7 +909,7 @@ class trim_right (bpy.types.Operator):
 
 
 class snap_end (bpy.types.Operator):
-    bl_idname = "ht.snap_end"
+    bl_idname = "sequencer.trimtools_snap_end"
     bl_label = "Snap End"
     bl_description = "Snap the Clip to the current frame with it´s end"
 
@@ -916,31 +919,31 @@ class snap_end (bpy.types.Operator):
         return {'FINISHED'}
 
 def define_hotkeys():
-    keymaps = bpy.context.window_manager.keyconfigs.user.keymaps
-    keymap_sequencer = keymaps['Sequencer']
-    #keymap_sequencer = keymaps.new('Sequencer')
+    keymaps = bpy.context.window_manager.keyconfigs.addon.keymaps
+    # keymap_sequencer = keymaps['Sequencer']
+    keymap_sequencer = keymaps.new('Sequencer')
     keys_sequencer = keymap_sequencer.keymap_items
-    keymap_filebrowser = keymaps['File Browser Main']
-    #keymap_filebrowser = keymaps.new('File Browser Main')
+    # keymap_filebrowser = keymaps['File Browser Main']
+    keymap_filebrowser = keymaps.new('File Browser Main')
     keys_filebrowser = keymap_filebrowser.keymap_items
 
 
     # Edit Range
-    keys_filebrowser.new('moviemanager.edit_range',value='DOUBLE_CLICK',
+    keys_filebrowser.new('file.moviemanager_edit_range',value='DOUBLE_CLICK',
                type='LEFTMOUSE',ctrl=False,alt=False,shift=False,oskey=False)
-    keys_sequencer.new('moviemanager.switch_back_to_timeline',value='PRESS',
+    keys_sequencer.new('sequencer.moviemanager_switch_back_to_timeline',value='PRESS',
                type='R',ctrl=False,alt=False,shift=True,oskey=False)
-    keys_sequencer.new('moviemanager.insert_strip_masterscene',value='PRESS',
+    keys_sequencer.new('sequencer.moviemanager_insert_strip_masterscene',value='PRESS',
                type='I',ctrl=False,alt=False,shift=False,oskey=False)
 
     # trimming
-    keys_sequencer.new('ht.trim_left',value='PRESS',
+    keys_sequencer.new('sequencer.trimtools_trim_left',value='PRESS',
                type='Q',ctrl=False,alt=False,shift=True,oskey=False)
-    keys_sequencer.new('ht.trim_right',value='PRESS',
+    keys_sequencer.new('sequencer.trimtools_trim_right',value='PRESS',
                type='W',ctrl=False,alt=False,shift=True,oskey=False)
-    keys_sequencer.new('ht.snap_end',value='PRESS',
+    keys_sequencer.new('sequencer.trimtools_snap_end',value='PRESS',
                type='E',ctrl=False,alt=False,shift=True,oskey=False)
-    keys_sequencer.new('ht.select_current',value='PRESS',
+    keys_sequencer.new('sequencer.trimtools_select_current',value='PRESS',
                type='C',ctrl=False,alt=False,shift=True,oskey=False)
 
 def register():
