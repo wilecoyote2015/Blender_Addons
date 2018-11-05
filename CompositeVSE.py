@@ -248,9 +248,9 @@ class CompPanel(bpy.types.Panel):
         eswc_info = scn.eswc_info
         if activestrip is not None:
             if activestrip.type == "SCENE":
-                layout.operator("eswc.switch_to_composite")
+                layout.operator("sequencer.eswc_switch_to_composite")
             if activestrip.type in {"MOVIE", "IMAGE"}:
-                layout.operator("eswc.single_comp")
+                layout.operator("sequencer.eswc_single_comp")
 
         layout.prop(eswc_info, "bool_show_options")
         if eswc_info.bool_show_options:
@@ -294,8 +294,8 @@ class NodePanel(bpy.types.Panel):
             row = layout.row()
             col = row.column()
             try:
-                col.operator("eswc.switch_back_to_timeline")
-                col.operator("eswc.switch_to_composite_nodepanel")
+                col.operator("node.eswc_switch_back_to_timeline")
+                col.operator("node.eswc_switch_to_composite_nodepanel")
             except KeyError:
                 pass
         except AttributeError:
@@ -303,7 +303,7 @@ class NodePanel(bpy.types.Panel):
 
 
 class Switch_to_Composite_Operator(bpy.types.Operator):
-    bl_idname = "eswc.switch_to_composite"
+    bl_idname = "sequencer.eswc_switch_to_composite"
     bl_label = "Edit Composition"
 
     def invoke(self, context, event):
@@ -326,7 +326,7 @@ class Switch_to_Composite_Operator(bpy.types.Operator):
 
 
 class Switch_to_Composite_Nodepanel_Operator(bpy.types.Operator):
-    bl_idname = "eswc.switch_to_composite_nodepanel"
+    bl_idname = "node.eswc_switch_to_composite_nodepanel"
     bl_label = "Edit Composition"
 
     def invoke(self, context, event):
@@ -350,7 +350,7 @@ class Switch_to_Composite_Nodepanel_Operator(bpy.types.Operator):
 
 
 class Switch_back_to_Timeline_Operator(bpy.types.Operator):
-    bl_idname = "eswc.switch_back_to_timeline"
+    bl_idname = "node.eswc_switch_back_to_timeline"
     bl_label = "Get Back"
 
     def invoke(self, context, event):
@@ -369,7 +369,7 @@ class Switch_back_to_Timeline_Operator(bpy.types.Operator):
 
 
 class S_CompOperator(bpy.types.Operator):
-    bl_idname = "eswc.single_comp"
+    bl_idname = "sequencer.eswc_single_comp"
     bl_label = "Create Comp from strips"
 
     def copy_render_settings(self, scene_a, scene_b):
