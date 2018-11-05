@@ -15,47 +15,9 @@
 #  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
 # ##### END GPL LICENSE BLOCK #####
-"""
-TODO: Compositinng mit den den Ganzen sachen:
- - Beim Composite erstellen:
-    - Wenn Reuse Composite:
-        - Nach Composites, die den selben Quellclip haben, suchen
-            - Wenn keine vorhanden:
-                - Neue Composition erstellen
-                - Clipquelle in Composite speichern
-            - Wenn eine vorhanden: Diesen nehmen
-            - Wenn mehrere vorhanden: Nichts tun und am ende warnung ausgeben.
-            Dass diese(r) clip(s) nicht gecomposited werden konnten,
-            sodass man das manuell mit nur einer selektion machen soll.
-    - Sonst:
-        - Neue Comp erstellen
-        - Clipquelle in Comp speichern
 
-    - Wenn im Comp=Preview Modus:
-        - Clipnamen(oder besser ID) speichern
-        - Clip loeschen
-        - Composite clip einfuegen
-        - Quellen aller Effektstrips updaten
-    - Sonst:
-        - Compname im Clip speichern
 
-- Beim Wechsel zwischen Comp-Preview und normal:
-    - Von Comp-Preview:
-        - Comp-Strip loeschen
-        - Movieclip mit der Quelldatei erstellen
-        - Quellen aller Effektstrips updaten
-    - Nach Comp-Preview:
-        - Comp-Name von Moviestrip holen
-        - Moviestrip loeschen
-        - Composite einfuegen
-        - Quellen aller Effektstrips updaten
-
-Notizen:
-- Allgemeine Funktion  fuer das Einfuegen einer existierenden Komposition
-    Als ersatz eines Movieclips schreiben. Die wird beim Wechsel und beim Einfuegen verwendet.
-- Beim einfuegen von CLips gibt es die Option "replace_sel". Kann man die verwenden?
-
-"""
+# todo: automatically show composites before rendering, but store value of bool_show_compositions to revert after render
 
 # TODO: Correctly handle image sequences which start at a frame number >0. The correct offset has to be set.
 
@@ -83,24 +45,8 @@ from bpy.props import (IntProperty,
                        PointerProperty,
                        )
 
-# common functions
-def triminout(strip, sin, sout):
-    start = strip.frame_start + strip.frame_offset_start
-    end = start + strip.frame_final_duration
-    if end > sin:
-        if start < sin:
-            strip.select_right_handle = False
-            strip.select_left_handle = True
-            bpy.ops.sequencer.snap(frame=sin)
-            strip.select_left_handle = False
-    if start < sout:
-        if end > sout:
-            strip.select_left_handle = False
-            strip.select_right_handle = True
-            bpy.ops.sequencer.snap(frame=sout)
-            strip.select_right_handle = False
-    return {'FINISHED'}
 
+# common functions
 
 def switch_screen(context, eswc_screen):
     # get the name of the desired composite screen
@@ -116,17 +62,70 @@ def switch_screen(context, eswc_screen):
             break
 
 
+def select_only_strip(strip):
+    # deselect all strips and select only the composite strip
+    # todo: more elegant way to do this?
+    bpy.ops.sequencer.select_all(action='SELECT')
+    for i in bpy.context.selected_editable_sequences:
+        if i.name != strip.name:
+            i.select = False
+    bpy.context.scene.sequence_editor.active_strip = strip
+    bpy.context.scene.update()
+
+
+def create_strip_for_composition(strip_composition):
+    eswc_info_composite = strip_composition.scene.eswc_info
+    path_input = eswc_info_composite.path_input
+
+    # deselect all other strips
+    bpy.ops.sequencer.select_all(action='DESELECT')
+
+    new_strip = None
+    if eswc_info_composite.type_original_strip == 'MOVIE':
+        bpy.ops.sequencer.movie_strip_add(filepath=path_input, replace_sel=True, sound=False)
+        bpy.context.scene.update()
+        new_strip = bpy.context.scene.sequence_editor.active_strip
+    elif eswc_info_composite.type_original_strip == 'IMAGE':
+        # todo: respect files. For this, a new string prop collection holding all files
+        # of the source image strip must be added to composition scene.
+        # also, the check if a scene already corresponds to an image strip then also has to compare
+        # this list of files because if other files are used, it is not the same source albeit
+        # it referes to the same directory.
+        bpy.ops.sequencer.image_strip_add(directory=path_input, replace_sel=True)
+        bpy.context.scene.update()
+        new_strip = bpy.context.scene.sequence_editor.active_strip
+
+    if new_strip is not None:
+        new_strip.composite_scene = strip_composition.scene.name
+        S_CompOperator.replace_strip(strip_composition, new_strip, bpy.context)
+    else:
+        print({'ERROR_INVALID_INPUT'}, 'The following composite strip refers to an invalid strip type:'
+                                       ' {}'.format(strip_composition.name))
+
+    return new_strip
+
+
+# function to toggle showing the compositions
+def toggle_composition_visibility(self, context):
+    # store strips first because direct iteration doesn't work when modifying strips
+    strips = [strip for strip in bpy.context.scene.sequence_editor.sequences_all]
+
+    for strip in strips:
+        # if show compositions, replace the movie and image strips with their compositions
+        if bpy.context.scene.eswc_info.bool_show_compositions:
+            if strip.type in ['MOVIE', 'IMAGE']:
+                if strip.composite_scene != "":
+                    composite_scene = bpy.data.scenes[strip.composite_scene]
+                    S_CompOperator.insert_scene_timeline(composite_scene, strip, bpy.context)
+        # if not show compositions, the compositions are to be replaced by the movie strips
+        elif strip.type == 'SCENE' and strip.scene.eswc_info.path_input != "":
+            new_strip = create_strip_for_composition(strip)
+
+
 # ----------------------------------------------------------------------------
 # Persistent Scene Data Types for Edit Strip With Compositor addon (eswc_info)
 
 class ESWC_Info(bpy.types.PropertyGroup):
-    comp_name = StringProperty(
-        name="Comp Name",
-        default="",
-        description="Name of the composite")
-
-
-
     bool_show_options = BoolProperty(
         name="Show options",
         description="Show options",
@@ -137,16 +136,23 @@ class ESWC_Info(bpy.types.PropertyGroup):
         description="Add Scale node",
         default=False)
 
-    bool_preserve_duration = BoolProperty(
-        name="Preserve strip duration",
-        description="If activated, the composite will have the untrimmed instead of trimmed length of the input strip.",
-        default=False)
+    # todo: implement update function
+    bool_show_compositions = BoolProperty(
+        name="Show composite strips",
+        description="If activated, the composite are shown in the timeline. Otherwise, the source videos are visible.",
+        default=True,
+        update=toggle_composition_visibility)
+
+    bool_reuse_compositions = BoolProperty(
+        name="Reuse compositions",
+        description="When creating compositions for strips, reuse existing compositions that use the same source",
+        default=True)
 
     bool_add_viewer = BoolProperty(
         name="Add Viewer",
         description="You can add a viewer node to the new compositions \
         automatically",
-        default=False)
+        default=True)
 
     bool_add_group = BoolProperty(
         name="Add Nodegroup",
@@ -157,11 +163,17 @@ class ESWC_Info(bpy.types.PropertyGroup):
     # the input path of the movie file the composition was created from
     # if it is empty, the operators infer that the current scene
     # is not a composition.
-    movie_input = StringProperty(
+    path_input = StringProperty(
         name="Movie strip input",
         default="",
         description="the input path of the movie file the composition was \
             created from")
+
+    # store original strip type so that a strip can be created from the composition
+    type_original_strip = StringProperty(
+        name="Original strip type",
+        default="",
+        description="Type of the strip associated with this composition")
 
     bool_auto_proxy = BoolProperty(
         name="Automatic proxy settings",
@@ -185,13 +197,6 @@ class ESWC_Info(bpy.types.PropertyGroup):
         name="Proxy Quality", items=proxy_qualities,
         default="1",
         description="Quality setting for auto proxies")
-
-    channel_increase = IntProperty(
-        name="Channel increase",
-        description="Define how many tracks above the source strips the new \
-        Strips are placed for the single strip option. For the multiple clips \
-        option this is the channel number the new strip will be placed in",
-        default=1, min=1, max=30, step=1)
 
     master_scene = StringProperty(
         name="Master Scene",
@@ -226,106 +231,51 @@ class ESWC_Info(bpy.types.PropertyGroup):
                                     name="Compositing Screen")
 
 
-# Initialization                
-def initprops(context, scn):
-    eswc_info = scn.eswc_info
-
-    try:
-        if eswc_info.scene_init_comp == True:
-            return False
-    except AttributeError:
-        pass
-    # Define some new properties we will use
-    eswc_info.comp_name = ""  # what is this for?
-    eswc_info.bool_show_options = False
-    eswc_info.bool_add_scale = False
-    eswc_info.bool_preserve_duration = True
-    eswc_info.bool_add_viewer = False
-    eswc_info.bool_add_group = False
-    eswc_info.bool_auto_proxy = False
-    eswc_info.settings = "All"
-    eswc_info.pq = "1"
-    eswc_info.channel_increase = 1
-    eswc_info.scene_init_comp = True
-
-
-class SetMasterSceneOperator(bpy.types.Operator):
-    bl_idname = "eswc.set_master_scene"
-    bl_label = "Set master scene"
-
-    def invoke(self, context, event):
-        bpy.ops.sequencer.rendersize()
-        initprops(context, context.scene)
-
-        return {'FINISHED'}
-
-        # ______________________PANEL_______________________________________
-
-
 class CompPanel(bpy.types.Panel):
     bl_label = "Edit strip with Compositor"
     bl_space_type = "SEQUENCE_EDITOR"
     bl_region_type = "UI"
 
-    @staticmethod
-    def has_sequencer(context):
-        return (context.space_data.view_type in {'SEQUENCER'})
-
-    @classmethod
-    def poll(self, context):
-        try:
-            if (bpy.context.scene.sequence_editor.active_strip.type in {'MOVIE', "IMAGE", "SCENE"}):
-                return bpy.context.scene.sequence_editor
-            else:
-                return False
-        except:
-            return False
-
     def draw(self, context):
         scn = context.scene
         activestrip = scn.sequence_editor.active_strip
         layout = self.layout
-        try:
-            eswc_info = scn.eswc_info
-            if eswc_info.scene_init_comp:
-                if activestrip.type == "SCENE":
-                    layout.operator("eswc.switch_to_composite")
-                if activestrip.type in {"MOVIE", "IMAGE"}:
-                    layout.operator("eswc.single_comp")
-                    layout.prop(eswc_info, "bool_show_options")
-                    if eswc_info.bool_show_options:
-                        box = layout.box()
+        # try:
+        eswc_info = scn.eswc_info
+        if activestrip is not None:
+            if activestrip.type == "SCENE":
+                layout.operator("eswc.switch_to_composite")
+            if activestrip.type in {"MOVIE", "IMAGE"}:
+                layout.operator("eswc.single_comp")
 
-                        col = box.column(align=True)
+        layout.prop(eswc_info, "bool_show_options")
+        if eswc_info.bool_show_options:
+            box = layout.box()
+            col = box.column(align=True)
+            col.prop(eswc_info, "settings")
+            col.prop(eswc_info, "bool_show_compositions")
+            col.prop(eswc_info, "bool_reuse_compositions")
+            col.prop(eswc_info, "bool_add_viewer")
+            col.prop(eswc_info, "bool_add_scale")
 
-                        col.prop(eswc_info, "channel_increase")
-                        col.prop(eswc_info, "settings")
-                        col.prop(eswc_info, "bool_add_viewer")
-                        col.prop(eswc_info, "bool_add_scale")
-                        col.prop(eswc_info, "bool_preserve_duration")
-                        col.prop(eswc_info, "bool_auto_proxy")
-                        if eswc_info.bool_auto_proxy:
-                            col.prop(eswc_info, "pq")
+            col.prop(eswc_info, "bool_auto_proxy")
+            if eswc_info.bool_auto_proxy:
+                col.prop(eswc_info, "pq")
 
-                        if len(bpy.data.node_groups) != 0:
-                            col.prop(eswc_info, "bool_add_group")
-                            if eswc_info.bool_add_group:
-                                # node group selector
-                                col.prop(eswc_info, "enum_node_groups")
+            if len(bpy.data.node_groups) != 0:
+                col.prop(eswc_info, "bool_add_group")
+                if eswc_info.bool_add_group:
+                    # node group selector
+                    col.prop(eswc_info, "enum_node_groups")
 
-                        box = layout.box()
-                        col = box.column(align=True)
+            box = layout.box()
+            col = box.column(align=True)
 
-                        # comp screen selector
-                        col.prop(eswc_info, "enum_comp_screen")
+            # comp screen selector
+            col.prop(eswc_info, "enum_comp_screen")
 
-                        # editing screen selector
-                        col.prop(eswc_info, "enum_edit_screen")
-
-            else:
-                layout.operator("eswc.set_master_scene")
-        except AttributeError as Err:
-            layout.operator("eswc.set_master_scene")
+            # editing screen selector
+            col.prop(eswc_info, "enum_edit_screen")
 
 
 class NodePanel(bpy.types.Panel):
@@ -336,13 +286,10 @@ class NodePanel(bpy.types.Panel):
     def draw(self, context):
         scn = context.scene
         try:
-            eswc_info = scn.eswc_info
-
             layout = self.layout
             row = layout.row()
             col = row.column()
             try:
-                col.prop(eswc_info, "comp_name")
                 col.operator("eswc.switch_back_to_timeline")
                 col.operator("eswc.switch_to_composite_nodepanel")
             except KeyError:
@@ -354,7 +301,6 @@ class NodePanel(bpy.types.Panel):
 class Switch_to_Composite_Operator(bpy.types.Operator):
     bl_idname = "eswc.switch_to_composite"
     bl_label = "Edit Composition"
-
 
     def invoke(self, context, event):
         if context.scene.sequence_editor.active_strip.type == 'SCENE':
@@ -404,7 +350,6 @@ class Switch_back_to_Timeline_Operator(bpy.types.Operator):
     bl_label = "Get Back"
 
     def invoke(self, context, event):
-
         scn = bpy.data.scenes[context.scene.eswc_info.master_scene]
 
         # this is to avoid errors when changing percentage for preview render...
@@ -421,7 +366,7 @@ class Switch_back_to_Timeline_Operator(bpy.types.Operator):
 
 class S_CompOperator(bpy.types.Operator):
     bl_idname = "eswc.single_comp"
-    bl_label = "Create Comp from strip"
+    bl_label = "Create Comp from strips"
 
     def copy_render_settings(self, scene_a, scene_b):
         '''
@@ -429,7 +374,7 @@ class S_CompOperator(bpy.types.Operator):
         '''
         scene_a.render.resolution_x = scene_b.render.resolution_x
         scene_a.render.resolution_y = scene_b.render.resolution_y
-        scene_a.render.resolution_percentage = scene_b.render.resolution_percentage
+        # scene_a.render.resolution_percentage = scene_b.render.resolution_percentage
         scene_a.render.fps = scene_b.render.fps
         path = bpy.path.abspath(os.path.join("//Comp", scene_a.name + "/" + scene_a.name))
         scene_a.render.filepath = bpy.path.relpath(path)
@@ -442,7 +387,8 @@ class S_CompOperator(bpy.types.Operator):
         scene_a.node_tree.edit_quality = scene_b.node_tree.edit_quality
         scene_a.node_tree.chunk_size = scene_b.node_tree.chunk_size
 
-    def copy_all_settings(self, scene_a, scene_b):
+    @staticmethod
+    def copy_all_settings(scene_a, scene_b):
         '''
         Copy all listed settings for scene strip A scene_a.node_tree.use_opencl
         to match original scene strip B
@@ -464,7 +410,8 @@ class S_CompOperator(bpy.types.Operator):
         scene_a.blend_alpha = scene_b.blend_alpha
         scene_a.use_flip_x = scene_b.use_flip_x
 
-    def setup_proxy(self, strip, eswc_info, new_name):
+    @staticmethod
+    def setup_proxy(strip, eswc_info, new_name):
         strip.use_proxy = True
         if (eswc_info.pq == "1"):
             strip.proxy.build_25 = True
@@ -483,8 +430,6 @@ class S_CompOperator(bpy.types.Operator):
         else:
             strip.proxy.build_100 = False
         strip.use_proxy_custom_directory = True
-        # blender file path
-        file = bpy.data.filepath
         name = new_name
         proxy_folder = bpy.path.abspath("//.proxy")
         new_folder = os.path.join(proxy_folder, name)
@@ -494,103 +439,106 @@ class S_CompOperator(bpy.types.Operator):
 
     def create_composition_for_strip(self, original_strip, context):
         # Creates new scene but doesn't set it as active.
+        # attention: new_scene_name may be != new_scene.name, if scene of same name already exists.
         new_scene_name = '{}{}'.format('Comp_', original_strip.name)
         new_scene = bpy.data.scenes.new(new_scene_name)
 
-        current_scene = context.scene
-        eswc_info = current_scene.eswc_info
-
-        # set comp_name
-        # TODO: Collection of string properties holding the strip names
-        # TODO: give strip in timeline the name of the original movie strip?
-        new_scene.eswc_info.comp_name = original_strip.name
+        editing_scene = context.scene
+        eswc_info_editing = editing_scene.eswc_info
 
         # Change render settings for new scene to match original scene
-        self.copy_render_settings(new_scene, current_scene)
+        self.copy_render_settings(new_scene, editing_scene)
+
+        # set render resolution to full so that scaling is done in sequencer
+        new_scene.render.resolution_percentage = 100
 
         # Setup new scene EndFrame to match original_strip length
-        if not eswc_info.bool_preserve_duration:
-            new_scene.frame_start = 1
-            new_scene.frame_end = original_strip.frame_final_duration
-        else:
-            new_scene.frame_end = original_strip.frame_final_duration + original_strip.frame_offset_start + original_strip.frame_offset_end
+        new_scene.frame_end = original_strip.frame_final_duration + original_strip.frame_offset_start + original_strip.frame_offset_end
 
         # Setup nodes
         new_scene.use_nodes = True
 
-        self.create_node_tree_for_strip(new_scene, original_strip, eswc_info, context)
+        self.create_node_tree_for_strip(new_scene, original_strip, eswc_info_editing)
 
-        # Create Marker that indicates the original_strip's length in the scene.
-        # TODO: Update the marker positions on everytime the composition is opened.
-        if eswc_info.bool_preserve_duration:
-            bpy.ops.marker.add()
-            playhead = context.scene.frame_current
-            marker_offset = original_strip.frame_offset_start - playhead
-            bpy.ops.marker.move(frames=marker_offset)
-            bpy.ops.marker.make_links_scene(scene=new_scene.name)
-            bpy.ops.marker.delete()
+        new_scene.eswc_info.master_scene = editing_scene.name
+        new_scene.eswc_info.type_original_strip = original_strip.type
+        new_scene.eswc_info.path_input = self.get_filepath_strip(original_strip)
 
         context.screen.scene.update()
 
-        # Add newly created scene to the timeline
-        channel_increase = eswc_info.channel_increase
-        if not eswc_info.bool_preserve_duration:
-            bpy.ops.sequencer.scene_strip_add(
-                frame_start=original_strip.frame_start,
-                channel=original_strip.channel + channel_increase,
-                replace_sel=False, scene=new_scene.name)
-        else:
-            bpy.ops.sequencer.scene_strip_add(
-                frame_start=original_strip.frame_start,
-                channel=original_strip.channel + channel_increase,
-                replace_sel=False, scene=new_scene.name)
+        return new_scene
 
-        # Copy Settings
-        settings = eswc_info.settings
-
-        # make new original_strip active
-        context.scene.sequence_editor.active_strip = bpy.data.scenes[current_scene.name].sequence_editor. \
-                sequences_all[new_scene.name]
-        new_strip = context.scene.sequence_editor.active_strip
+    @classmethod
+    def insert_scene_timeline(cls, new_scene, original_strip, context):
 
         # deselect all other strips
-        for i in context.selected_editable_sequences:
-            if i.name != new_strip.name:
-                i.select = False
+        bpy.ops.sequencer.select_all(action='DESELECT')
+        context.scene.sequence_editor.active_strip = None
+
+        # Add newly created scene to the timeline
+        # if view comps mode, replace the movie strip with the scene strip.
+        # else, assign the composition name to the movie strip
+        bpy.ops.sequencer.scene_strip_add(
+            frame_start=original_strip.frame_start,
+            replace_sel=True, scene=new_scene.name)
+
+        context.scene.update()
+
+        # make composite strip  active
+        # todo: is this really the correct way to get the newly created strip?
+        composite_strip = context.scene.sequence_editor.active_strip
+
+        cls.replace_strip(original_strip, composite_strip, context)
+
+    @classmethod
+    def replace_strip(cls, strip_to_replace, strip_replacement, context):
+        eswc_info = context.scene.eswc_info
+
+        name_strip = strip_to_replace.name
 
         # Update scene
         context.scene.update()
 
-        # Camera override
-        new_strip.scene_camera = current_scene.camera
-
-        # Match the original clip's length
-        if eswc_info.bool_preserve_duration == False:
-            new_strip.frame_start = original_strip.frame_start + original_strip.frame_offset_start
-            new_strip.frame_final_duration = original_strip.frame_final_duration
-            new_strip.animation_offset_start = 0
-            new_strip.animation_offset_end = 0
-        else:
-            triminout(new_strip,
-                      original_strip.frame_start + original_strip.frame_offset_start,
-                      original_strip.frame_start + original_strip.frame_offset_start + \
-                      original_strip.frame_final_duration)
+        # # Camera override
+        # todo: this in insert_scene_timeline?
+        # strip_replacement.scene_camera = editing_scene.camera
 
         context.scene.update()
 
-        # Save the original_strip's master scene
-        bpy.data.scenes[new_scene.name].eswc_info.master_scene = current_scene.name
+        # Copy Settings
+        if eswc_info.settings == "All":
+            cls.copy_all_settings(strip_replacement, strip_to_replace)
 
-        if (settings == "All"):
-            a = bpy.data.scenes[current_scene.name].sequence_editor.sequences[new_scene.name]
-            b = bpy.data.scenes[current_scene.name].sequence_editor.sequences_all[original_strip.name]
-            self.copy_all_settings(a, b)
+        if eswc_info.bool_auto_proxy:
+            a = strip_replacement
+            cls.setup_proxy(a, eswc_info, strip_replacement.name)
 
-        if (eswc_info.bool_auto_proxy == True):
-            a = bpy.data.scenes[current_scene.name].sequence_editor.sequences[new_scene.name]
-            self.setup_proxy(a, eswc_info, new_scene.name)
+        # if any strips use the strip to replace as input, set input to new strip
+        for sequence in context.scene.sequence_editor.sequences_all:
+            if hasattr(sequence, 'input_1') and sequence.input_1 == strip_to_replace:
+                sequence.input_1 = strip_replacement
+            if hasattr(sequence, 'input_2') and sequence.input_2 == strip_to_replace:
+                sequence.input_2 = strip_replacement
 
-    def create_node_tree_for_strip(self, new_scene, strip, eswc_info, context):
+        channel = strip_to_replace.channel
+        frame_start = strip_to_replace.frame_start
+        offset_start = strip_to_replace.frame_offset_start
+        offset_end = strip_to_replace.frame_offset_end
+
+        # delete the strip
+        select_only_strip(strip_to_replace)
+        bpy.ops.sequencer.delete()
+
+        # set the correct channel and name
+        strip_replacement.name = name_strip
+
+        strip_replacement.frame_offset_start = offset_start
+        strip_replacement.frame_offset_end = offset_end
+        strip_replacement.frame_start = frame_start
+
+        strip_replacement.channel = channel
+
+    def create_node_tree_for_strip(self, new_scene, strip, eswc_info):
         # copy_comp_render_settings(new_scene, cur_scene)
         node_tree = new_scene.node_tree
 
@@ -634,12 +582,10 @@ class S_CompOperator(bpy.types.Operator):
         elif strip.type == 'MOVIE':
             # Get source of strip and add strip path
             strip_path = strip.filepath
-            filename = os.path.basename(strip_path)
 
             # Check for existing image datablocks for this item
             bool_create_new = True
             D = bpy.data
-            # print(strip_path)
             for file in D.images:
                 if file.filepath == strip_path:
                     strip_source = bpy.data.images[file.name]
@@ -651,22 +597,20 @@ class S_CompOperator(bpy.types.Operator):
             image_node.image = strip_source
 
         # Other input settings
-        if eswc_info.bool_preserve_duration == False:
-            image_node.frame_duration = strip.frame_final_duration
-            image_node.frame_offset = strip.frame_offset_start + \
-                              strip.animation_offset_start
-        else:
-            image_node.frame_duration = strip.frame_final_duration + \
-                                strip.frame_offset_start + strip.frame_offset_end + \
-                                strip.animation_offset_end
-            image_node.frame_offset = strip.animation_offset_start
+        # length shall be original movie length.
+        # todo: is this necessary? Doesn't the strip have the duration by default?
+        # todo: why set frame offset?
+        image_node.frame_duration = strip.frame_final_duration + \
+                                    strip.frame_offset_start + strip.frame_offset_end + \
+                                    strip.animation_offset_end
+        image_node.frame_offset = strip.animation_offset_start
 
         image_node.use_cyclic = False
         image_node.use_auto_refresh = True
 
         # Update scene
         new_scene.update()
-        # strip_source.update()
+
         new_scene.frame_current = 2
 
         # create scale node
@@ -743,27 +687,64 @@ class S_CompOperator(bpy.types.Operator):
                 else:
                     link = links.new(image_node.outputs[0], reroute.inputs[0])
 
+    @classmethod
+    def find_matching_compositions(cls, strip):
+        result = []
+        for scene in bpy.data.scenes:
+            if scene.eswc_info.path_input == cls.get_filepath_strip(strip):
+                result.append(scene)
+
+        return result
+
+    @staticmethod
+    def get_filepath_strip(strip):
+        if strip.type == 'IMAGE':
+            return strip.directory
+
+        elif strip.type == 'MOVIE':
+            # Get source of strip and add strip path
+            return strip.filepath
+
     def invoke(self, context, event):
-        scn = context.scene
+        eswc_info = context.scene.eswc_info
 
-
-            # Get selected strips, current scene, and
-
-        # current camera, used for linking with other scenes
         selected_strips = context.selected_sequences
-        current_scene = bpy.data.scenes[context.scene.name]
-        current_camera = current_scene.camera
 
-        # Loop selected strips                         
+        # Loop selected strips
+        names_strips_failed = []
         for strip in selected_strips:
 
             # Check if strip is a movie
-            if strip.type == 'MOVIE' or 'IMAGE':
-                self.create_composition_for_strip(strip, context)
+            if strip.type in ['MOVIE', 'IMAGE']:
+
+                # create a new composition if no composition exists or if one or more compositions exist and
+                # option to create new compositions is activated.
+                # generate the composition
+                reuse_compositions = eswc_info.bool_reuse_compositions
+                matching_compositions = self.find_matching_compositions(strip)
+                if len(matching_compositions) == 0 or not reuse_compositions:
+                    comp_scene = self.create_composition_for_strip(strip, context)
+                elif len(matching_compositions) == 1 and reuse_compositions:
+                    # If only one compostion exists for the source, it can be reused
+                    comp_scene = matching_compositions[0]
+                else:
+                    names_strips_failed.append(strip.name)
+                    continue
+
+                # insert the strip into the scene in place of the original if composite strips are to be shown.
+                # else, set the name of the scene
+                if eswc_info.bool_show_compositions:
+                    self.insert_scene_timeline(new_scene=comp_scene, original_strip=strip, context=context)
+                else:
+                    strip.composite_scene = comp_scene.name
 
             else:
                 print("Active Strip is not a movie or an image sequence.")
 
+        if len(names_strips_failed) > 0:
+            self.report({'ERROR_INVALID_INPUT'}, 'The following strips could not be converted because more than one'
+                                                 'composite scenen with the same source exists and \"Reuse Composition\"'
+                                                 'is activated: {}'.format(str(names_strips_failed)))
         return {'FINISHED'}
 
 
@@ -774,21 +755,23 @@ def register():
     bpy.types.Scene.eswc_info = PointerProperty(type=ESWC_Info)
 
     # strip composite scene name; used to interchange movies and composites
-    bpy.types.ImageSequence.CompositeScene = bpy.props.StringProperty(
+    bpy.types.ImageSequence.composite_scene = bpy.props.StringProperty(
         name="Composite Scene",
         description="The name of the composite scene associated to the strip",
         default=""
     )
-    bpy.types.MovieSequence.CompositeScene = bpy.props.StringProperty(
+    bpy.types.MovieSequence.composite_scene = bpy.props.StringProperty(
         name="Composite Scene",
         description="The name of the composite scene associated to the strip",
         default=""
     )
-    bpy.types.MovieClipSequence.CompositeScene = bpy.props.StringProperty(
+    # todo: MovieClip sequences are not supported yet.
+    bpy.types.MovieClipSequence.composite_scene = bpy.props.StringProperty(
         name="Composite Scene",
         description="The name of the composite scene associated to the strip",
         default=""
     )
+
 
 def unregister():
     bpy.utils.unregister_module(__name__)
