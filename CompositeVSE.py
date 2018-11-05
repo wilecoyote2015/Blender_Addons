@@ -236,6 +236,10 @@ class CompPanel(bpy.types.Panel):
     bl_space_type = "SEQUENCE_EDITOR"
     bl_region_type = "UI"
 
+    @classmethod
+    def poll(cls, context):
+        return bpy.context.scene.sequence_editor is not None
+
     def draw(self, context):
         scn = context.scene
         activestrip = scn.sequence_editor.active_strip
