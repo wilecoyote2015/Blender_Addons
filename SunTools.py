@@ -31,7 +31,7 @@ bl_info = {
     "description": "Define in- and outpoints of your material in the file browser",
     "author": "Björn Sonnenschein",
     "version": (1, 3),
-    "blender": (2, 71, 0),
+    "blender": (2, 80, 0),
     "location": "File Browser > Tools",
     "wiki_url": "None Yet"
                 "None Yet",
@@ -225,6 +225,7 @@ class MovieManagerPanelBrowser(bpy.types.Panel):
     bl_space_type = "FILE_BROWSER"
     bl_region_type = "TOOLS"
     bl_label = "Movie Manager"
+    bl_category = "SunTools"
 
     def draw(self, context):
         scn = bpy.context.scene
@@ -249,6 +250,7 @@ class MovieManagerPanelBrowser(bpy.types.Panel):
 class MovieManagerPanel(bpy.types.Panel):
     bl_space_type = "SEQUENCE_EDITOR"
     bl_region_type = "UI"
+    bl_category = "SunTools"
     bl_label = "Movie Manager"
 
     def draw(self, context):
@@ -316,6 +318,7 @@ class MovieManagerPanel(bpy.types.Panel):
 class TrimToolsPanel(bpy.types.Panel):
     bl_space_type = "SEQUENCE_EDITOR"
     bl_region_type = "UI"
+    bl_category = "SunTools"
     bl_label = "Trim Tools"
 
     def draw(self, context):
@@ -946,47 +949,28 @@ def define_hotkeys():
     keys_sequencer.new('sequencer.trimtools_select_current',value='PRESS',
                type='C',ctrl=False,alt=False,shift=True,oskey=False)
 
-def register():
-    bpy.utils.register_class( Edit_Range_Operator )
-    bpy.utils.register_class( Proxy_Operator )
-    bpy.utils.register_class( Set_Timeline )
-    bpy.utils.register_class( Insert_Strip_Masterscene )
-    bpy.utils.register_class( Switch_back_to_Timeline_Operator )
-    bpy.utils.register_class( Insert_Strip )
-    bpy.utils.register_class( MovieManagerPanel )
-    bpy.utils.register_class( Unmeta )
-    bpy.utils.register_class( Hide_Operator)
-    bpy.utils.register_class(MovieManagerPanelBrowser)
-    bpy.utils.register_class(CleanupScenes)
-### TrimTools ###
-    bpy.utils.register_class( TrimToolsPanel )
-    bpy.utils.register_class( select_current )
-    bpy.utils.register_class( cut_current )
-    bpy.utils.register_class( trim_left )
-    bpy.utils.register_class( trim_right )
-    bpy.utils.register_class( snap_end )
 
-    # define_hotkeys()
+classes = (
+    MovieManagerPanelBrowser,
+    MovieManagerPanel,
+    TrimToolsPanel,
+    Set_Timeline,
+    CleanupScenes,
+    Hide_Operator,
+    Proxy_Operator,
+    Edit_Range_Operator,
+    Switch_back_to_Timeline_Operator,
+    Insert_Strip_Masterscene,
+    Insert_Strip,
+    Unmeta,
+    select_current,
+    cut_current,
+    trim_left,
+    trim_right,
+    snap_end
+)
 
-def unregister():
-    bpy.utils.unregister_class( Edit_Range_Operator )
-    bpy.utils.unregister_class( Proxy_Operator )
-    bpy.utils.unregister_class( Set_Timeline )
-    bpy.utils.unregister_class( Switch_back_to_Timeline_Operator)
-    bpy.utils.unregister_class( Insert_Strip_Masterscene )
-    bpy.utils.unregister_class( Insert_Strip )
-    bpy.utils.unregister_class( MovieManagerPanel )
-    bpy.utils.unregister_class( Unmeta )
-    bpy.utils.unregister_class( Hide_Operator)
-    bpy.utils.unregister_class(MovieManagerPanelBrowser)
-    bpy.utils.unregister_class(CleanupScenes)
-### TrimTools ###
-    bpy.utils.unregister_class( TrimToolsPanel )
-    bpy.utils.unregister_class( select_current )
-    bpy.utils.unregister_class( cut_current )
-    bpy.utils.unregister_class( trim_left )
-    bpy.utils.unregister_class( trim_right )
-    bpy.utils.unregister_class( snap_end )
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 
 if __name__ == "__main__":
