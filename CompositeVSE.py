@@ -234,6 +234,7 @@ class ESWC_Info(bpy.types.PropertyGroup):
 class CompPanel(bpy.types.Panel):
     bl_label = "Edit strip with Compositor"
     bl_space_type = "SEQUENCE_EDITOR"
+    bl_category = "Edit Strip with Compositor"
     bl_region_type = "UI"
 
     @classmethod
@@ -286,6 +287,7 @@ class NodePanel(bpy.types.Panel):
     bl_space_type = "NODE_EDITOR"
     bl_region_type = "UI"
     bl_label = "Edit strip with Compositor"
+    bl_category = "Edit Strip with Compositor"
 
     def draw(self, context):
         scn = context.scene
@@ -751,38 +753,17 @@ class S_CompOperator(bpy.types.Operator):
                                                  'is activated: {}'.format(str(names_strips_failed)))
         return {'FINISHED'}
 
+classes = (
+    ESWC_Info,
+    CompPanel,
+    NodePanel,
+    Switch_to_Composite_Operator,
+    Switch_to_Composite_Nodepanel_Operator,
+    Switch_back_to_Timeline_Operator,
+    S_CompOperator
+)
 
-def register():
-    bpy.utils.register_module(__name__)
-
-    # eswc_info
-    bpy.types.Scene.eswc_info = PointerProperty(type=ESWC_Info)
-
-    # strip composite scene name; used to interchange movies and composites
-    bpy.types.ImageSequence.composite_scene = bpy.props.StringProperty(
-        name="Composite Scene",
-        description="The name of the composite scene associated to the strip",
-        default=""
-    )
-    bpy.types.MovieSequence.composite_scene = bpy.props.StringProperty(
-        name="Composite Scene",
-        description="The name of the composite scene associated to the strip",
-        default=""
-    )
-    # todo: MovieClip sequences are not supported yet.
-    bpy.types.MovieClipSequence.composite_scene = bpy.props.StringProperty(
-        name="Composite Scene",
-        description="The name of the composite scene associated to the strip",
-        default=""
-    )
-
-
-def unregister():
-    bpy.utils.unregister_module(__name__)
-
-    # eswc_info
-    del bpy.types.Scene.eswc_info
-
+register, unregister = bpy.utils.register_classes_factory(classes)
 
 if __name__ == "__main__":
     register()
