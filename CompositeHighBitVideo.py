@@ -15,14 +15,7 @@ bl_info = {
 import bpy
 from bpy.app.handlers import persistent
 
-
-### Properties for nodes
-# bpy.types.CompositorNodeImage.high_bit_depth_source_node = bpy.props.StringProperty(
-#     name="High Bit Depth source Node",
-#     default=None
-# )
-
-label_id = 'HighBitDepth_'
+LABEL_ID = 'HighBitDepth_'
 
 @persistent
 def render_post(scene):
@@ -36,11 +29,11 @@ def insert_inputs_for_framegrabs(scene):
     # for all nodes
     for node in tree.nodes:
         # if the node is animation or image sequence and has image output connected, render framegrab and reconnect
-        if node.bl_static_type == 'IMAGE' and node.label.startswith(label_id):
+        if node.bl_static_type == 'IMAGE' and node.label.startswith(LABEL_ID):
             insert_input_for_framegrab(scene, node)
 
 def insert_input_for_framegrab(scene, node_framegrab):
-    name_node_input = node_framegrab.label[len(label_id):]
+    name_node_input = node_framegrab.label[len(LABEL_ID):]
     node_input = scene.node_tree.nodes[name_node_input]
     
     transfer_image_links_between_nodes(node_framegrab, node_input, scene)
@@ -62,7 +55,7 @@ def insert_framegrabs_for_inputs(scene):
         # if the node is animation or image sequence and has image output connected, render framegrab and reconnect
         if check_node_has_movie(node) and node.outputs['Image'].links:
             insert_framegrab_for_input(scene, node)
-    
+
 def check_node_has_movie(node):
     if node.bl_static_type == 'MOVIECLIP':
         return True
@@ -93,7 +86,7 @@ def insert_framegrab_for_input(scene, node):
 
     # set property of image input node indicating that is was created for rendering, storing the ID of the original
     # node
-    node_framegrab.label = '{}{}'.format(label_id, node.name)
+    node_framegrab.label = '{}{}'.format(LABEL_ID, node.name)
     transfer_image_links_between_nodes(node, node_framegrab, scene)
 
 def transfer_image_links_between_nodes(node_source, node_target, scene):
@@ -142,6 +135,7 @@ def get_colorspace(node):
         raise NotImplementedError('Node {} not supported'.format(node.bl_static_type))
 
 def render_framegrab(filepath, frame):
+    # todo
     return r'/home/bjoern/Downloads/darktable_exported/YR0001552.jpg'
     # use FFMPEG to extract a framegrab
         
