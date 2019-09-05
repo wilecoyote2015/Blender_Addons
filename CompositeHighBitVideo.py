@@ -14,6 +14,9 @@ bl_info = {
 
 import bpy
 from bpy.app.handlers import persistent
+import subprocess
+from os import path, makedirs
+import shutil
 
 LABEL_ID = 'HighBitDepth_'
 
@@ -22,6 +25,10 @@ def render_post(scene):
     if scene.use_nodes:
         insert_inputs_for_framegrabs(scene)
 
+        # delete the temp folder with framegrabs
+        path_temp_dir = get_path_dir_output()
+        if path.exists(path_temp_dir):
+            shutil.rmtree(path_temp_dir)
 
 def insert_inputs_for_framegrabs(scene):
     tree = scene.node_tree
@@ -47,6 +54,21 @@ def render_pre(scene):
     if scene.use_nodes:
         insert_framegrabs_for_inputs(scene)
 
+def apply_function_compositing_scene(scene, function ):
+    if scene.sequence_editor:
+        for sequence in scene.sequence_editor.sequences_all:
+            if (sequence.type == 'SCENE'
+                and sequence.frame_final_start <= scene.frame_current
+                and sequence.frame_final_end > scene.frame_current
+                and sequence.scene.use_nodes):
+                print('found')
+                function(sequence.scene)
+
+@persistent
+def render_pre_sequencer(scene):
+    apply_function_compositing_scene(scene, render_pre)
+
+
 def insert_framegrabs_for_inputs(scene):
     tree = scene.node_tree
     
@@ -70,7 +92,7 @@ def insert_framegrab_for_input(scene, node):
     # render current frame of video file as 16 bit tiff
     filepath = get_filepath_movie(node)
     frame = get_frame_movie(node, scene)
-    path_framegrab = render_framegrab(filepath, frame)
+    path_framegrab = render_framegrab(filepath, frame, node.name)
 
     # create image datablock with appropriate colorspace
     image_source = bpy.data.images.load(path_framegrab)
@@ -107,7 +129,7 @@ def get_frame_movie(node, scene):
     if node.bl_static_type == 'MOVIECLIP':
         movie = node.clip
     elif node.bl_static_type == 'IMAGE':
-        movie = node.image
+        movie = node
     else:
         raise NotImplementedError('Node {} not supported'.format(node.bl_static_type))
     
@@ -121,7 +143,7 @@ def calc_frame_movie(movie, scene):
 def get_filepath_movie(node):
     if node.bl_static_type == 'MOVIECLIP':
         return bpy.path.abspath(node.clip.filepath)
-    elif node.bl_static_type == 'Image':
+    elif node.bl_static_type == 'IMAGE':
         return bpy.path.abspath(node.image.filepath)
     else:
         raise NotImplementedError('Node {} not supported'.format(node.bl_static_type))
@@ -159,7 +181,20 @@ def render_framegrab(filepath, frame, filename):
     # return r'/home/bjoern/Downloads/darktable_exported/YR0001552.jpg'
     return path_output
 
-bpy.app.handlers.render_pre.append(render_pre)
+def get_path_dir_output():
+    path_blend = bpy.path.abspath()
+    return path.join(path_blend, 'temp_high_bit_depth')
+
+def get_dir_output():
+    path_dir_output = get_path_dir_output()
+
+    # create directory
+    if not path.exists(path_dir_output):
+        makedirs(path_dir_output)
+    return '/run/media/bjoern/daten'
+        
+
+bpy.app.handlers.render_pre.append(render_pre_sequencer)
 bpy.app.handlers.render_post.append(render_post)
 
-
+bpy.app.handlers.render_cancel.append(render_post)
