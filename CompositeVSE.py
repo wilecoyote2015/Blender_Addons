@@ -963,13 +963,12 @@ def render_init():
         
     
 def render_end():
-    if bpy.context.scene.eswc_info.bool_use_high_bit_depth_fix:
-        bpy.app.handlers.render_pre.remove(render_pre_sequencer)
-        bpy.app.handlers.render_post.remove(render_post)
-        bpy.app.handlers.render_cancel.remove(render_post)
-        
-        bpy.app.handlers.render_complete.remove(render_end)
-        bpy.app.handlers.render_cancel.remove(render_end)
+    bpy.app.handlers.render_pre.remove(render_pre_sequencer)
+    bpy.app.handlers.render_post.remove(render_post)
+    bpy.app.handlers.render_cancel.remove(render_post)
+
+    bpy.app.handlers.render_complete.remove(render_end)
+    bpy.app.handlers.render_cancel.remove(render_end)
 
 
 bpy.app.handlers.render_init.append(render_init)
