@@ -25,6 +25,11 @@
 # kann man ganz einfach hin- und her switchen. dafuer muss man aber auch die quellen
 # fuer alle anderen clips ersetzen!
 
+# todo: when closing edit range, store the clips in the timeline and the filepath (relative) in the masterscene, or
+#   better globally in the blend, and delete the range scene.
+#   When editing range, then first check if a range scene already exists and then construct one accordingly.
+#   IMPORTANT: Handle old projects properly!
+
 
 bl_info = {
     "name": "SunTools",
