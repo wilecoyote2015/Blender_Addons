@@ -134,11 +134,30 @@ def get_colorspace(node):
     else:
         raise NotImplementedError('Node {} not supported'.format(node.bl_static_type))
 
-def render_framegrab(filepath, frame):
-    # todo
-    return r'/home/bjoern/Downloads/darktable_exported/YR0001552.jpg'
-    # use FFMPEG to extract a framegrab
-        
+def render_framegrab(filepath, frame, filename):
+    command_framerate = "ffprobe -v 0 -of csv=p=0 -select_streams v:0 -show_entries " \
+                        "stream=r_frame_rate {}".format(filepath)
+    framerate = subprocess.run(command_framerate.split(' '),
+                                 stdout=subprocess.PIPE).stdout.decode('utf-8').split('/')
+    framerate_float = float(framerate[0]) / float(framerate[1])
+    seconds = frame / framerate_float
+    
+    filename_with_extension = '{}.tiff'.format(filename)
+    path_output = path.join(get_dir_output(), filename_with_extension)
+    
+    args = [
+        '-ss',
+        str(seconds),
+        '-i',
+        filepath,
+        '-y',
+        '-frames:v',
+        '1',
+        path_output
+    ]
+    subprocess.call(['ffmpeg'] + args)
+    # return r'/home/bjoern/Downloads/darktable_exported/YR0001552.jpg'
+    return path_output
 
 bpy.app.handlers.render_pre.append(render_pre)
 bpy.app.handlers.render_post.append(render_post)
