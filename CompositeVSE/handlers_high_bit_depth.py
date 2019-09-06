@@ -21,7 +21,6 @@ def insert_inputs_for_framegrabs(scene):
         if node.bl_static_type == 'IMAGE' and node.label.startswith(LABEL_ID):
             insert_input_for_framegrab(scene, node)
 
-
 def insert_input_for_framegrab(scene, node_framegrab):
     name_node_input = node_framegrab.label[len(LABEL_ID):]
     node_input = scene.node_tree.nodes[name_node_input]
@@ -59,14 +58,12 @@ def insert_framegrabs_for_inputs(scene):
         if check_node_has_movie(node) and node.outputs['Image'].links:
             insert_framegrab_for_input(scene, node)
 
-
 def check_node_has_movie(node):
     if node.bl_static_type == 'MOVIECLIP':
         return True
     if node.bl_static_type == 'IMAGE' and node.image.source == 'MOVIE':
         return True
     return False
-
 
 def insert_framegrab_for_input(scene, node):
     # todo: mute the node? No, because outputs other than image might be needed.
@@ -93,7 +90,6 @@ def insert_framegrab_for_input(scene, node):
     node_framegrab.label = '{}{}'.format(LABEL_ID, node.name)
     transfer_image_links_between_nodes(node, node_framegrab, scene)
 
-
 def transfer_image_links_between_nodes(node_source, node_target, scene):
     # store all image connections
     links_outputs = node_source.outputs['Image'].links
@@ -108,7 +104,6 @@ def transfer_image_links_between_nodes(node_source, node_target, scene):
     for socket_target in sockets_linked:
         link = scene.node_tree.links.new(socket_image, socket_target)
 
-
 def get_frame_movie(node, scene):
     if node.bl_static_type == 'MOVIECLIP':
         movie = node.clip
@@ -119,12 +114,10 @@ def get_frame_movie(node, scene):
 
     return calc_frame_movie(movie, scene)
 
-
 def calc_frame_movie(movie, scene):
     current_frame = scene.frame_current
 
     return current_frame - movie.frame_start + movie.frame_offset
-
 
 def get_filepath_movie(node):
     if node.bl_static_type == 'MOVIECLIP':
@@ -134,7 +127,6 @@ def get_filepath_movie(node):
     else:
         raise NotImplementedError('Node {} not supported'.format(node.bl_static_type))
 
-
 def get_colorspace(node):
     if node.bl_static_type == 'MOVIECLIP':
         return node.clip.colorspace_settings
@@ -142,7 +134,6 @@ def get_colorspace(node):
         return node.image.colorspace_settings
     else:
         raise NotImplementedError('Node {} not supported'.format(node.bl_static_type))
-
 
 def render_framegrab(filepath, frame, filename):
     command_framerate = "ffprobe -v 0 -of csv=p=0 -select_streams v:0 -show_entries " \
@@ -169,7 +160,6 @@ def render_framegrab(filepath, frame, filename):
     # return r'/home/bjoern/Downloads/darktable_exported/YR0001552.jpg'
     return path_output
 
-
 def get_path_dir_output():
     path_blend = bpy.path.abspath()
     return path.join(path_blend, 'temp_high_bit_depth')
@@ -183,7 +173,6 @@ def get_dir_output():
         makedirs(path_dir_output)
     return '/run/media/bjoern/daten'
 
-
 def render_init():
     if bpy.context.scene.eswc_info.bool_use_high_bit_depth_fix:
         bpy.app.handlers.render_pre.append(render_pre_sequencer)
@@ -193,9 +182,6 @@ def render_init():
         bpy.app.handlers.render_complete.append(render_end)
         bpy.app.handlers.render_cancel.append(render_end)
         
-
-        
-    
 def render_end():
     bpy.app.handlers.render_pre.remove(render_pre_sequencer)
     bpy.app.handlers.render_post.remove(render_post)
