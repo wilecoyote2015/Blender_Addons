@@ -2,6 +2,10 @@
 
 LABEL_ID = 'HighBitDepth_'
 
+import shutil
+from os import path
+import bpy
+
 def render_post(scene):
     if scene.use_nodes:
         insert_inputs_for_framegrabs(scene)

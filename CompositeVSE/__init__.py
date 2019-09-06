@@ -16,15 +16,19 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from handlers_high_bit_depth import render_init 
-from operator_composition import OperatorCreateCompositionFromStrip
-from operators_navigation import (
+from CompositeVSE.handlers_high_bit_depth import render_init
+from CompositeVSE.operator_composition import OperatorCreateCompositionFromStrip
+from CompositeVSE.operators_navigation import (
     Switch_back_to_Timeline_Operator,
     Switch_to_Composite_Nodepanel_Operator,
     Switch_to_Composite_Operator
 )
-from ui_panels import CompPanel, NodePanel
-from eswc_info import ESWC_Info
+from CompositeVSE.ui_panels import CompPanel, NodePanel
+from CompositeVSE.eswc_info import ESWC_Info
+
+import bpy
+
+# todo: also handle clips in metastrips for edit range
 
 bl_info = {
     "name": "Edit Strip With Compositor",
@@ -40,9 +44,6 @@ bl_info = {
     "category": "Sequencer"
 }
 
-
-bpy.app.handlers.render_init.append(render_init)
-
 classes = (
     ESWC_Info,
     CompPanel,
@@ -53,7 +54,18 @@ classes = (
     OperatorCreateCompositionFromStrip
 )
 
-register, unregister = bpy.utils.register_classes_factory(classes)
+register_classes, unregister_classes = bpy.utils.register_classes_factory(classes)
+
+def register():
+    register_classes()
+    bpy.types.Scene.eswc_info = bpy.props.PointerProperty(type=ESWC_Info)
+    bpy.app.handlers.render_init.append(render_init)
+
+
+def unregister():
+    unregister_classes()
+    del bpy.types.Scene.eswc_info
+    bpy.app.handlers.render_init.remove(render_init)
 
 if __name__ == "__main__":
     register()

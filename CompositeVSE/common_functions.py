@@ -17,7 +17,6 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import common_functions
 
 def switch_screen(context, eswc_screen):
     # get the name of the desired composite screen
@@ -68,7 +67,7 @@ def create_strip_for_composition(strip_composition):
 
     if new_strip is not None:
         new_strip.composite_scene = strip_composition.scene.name
-        common_functions.replace_strip(strip_composition, new_strip, bpy.context)
+        replace_strip(strip_composition, new_strip, bpy.context)
     else:
         print({'ERROR_INVALID_INPUT'}, 'The following composite strip refers to an invalid strip type:'
                                        ' {}'.format(strip_composition.name))
@@ -87,7 +86,7 @@ def toggle_composition_visibility(self, context):
             if strip.type in ['MOVIE', 'IMAGE']:
                 if strip.composite_scene != "":
                     composite_scene = bpy.data.scenes[strip.composite_scene]
-                    common_functions.insert_scene_timeline(composite_scene, strip, bpy.context)
+                    insert_scene_timeline(composite_scene, strip, bpy.context)
         # if not show compositions, the compositions are to be replaced by the movie strips
         elif strip.type == 'SCENE' and strip.scene.eswc_info.path_input != "":
             new_strip = create_strip_for_composition(strip)

@@ -30,7 +30,7 @@ class Switch_to_Composite_Operator(bpy.types.Operator):
 
             eswc_info = scn.eswc_info
             common_functions.switch_screen(context, eswc_info.enum_comp_screen)
-            context.screen.scene = stripscene
+            context.window.scene = stripscene
 
             try:
                 viewer = context.scene.node_tree.nodes['Viewer']
@@ -54,7 +54,7 @@ class Switch_to_Composite_Nodepanel_Operator(bpy.types.Operator):
             eswc_info = master_scene.eswc_info
 
             common_functions.switch_screen(context, eswc_info.enum_comp_screen)
-            context.screen.scene = target_scene
+            context.window.scene = target_scene
 
             try:
                 viewer = context.scene.node_tree.nodes['Viewer']
@@ -78,6 +78,6 @@ class Switch_back_to_Timeline_Operator(bpy.types.Operator):
 
         eswc_info = scn.eswc_info
         common_functions.switch_screen(context, eswc_info.enum_edit_screen)
-        context.screen.scene = scn
+        context.window.scene = scn
 
         return {'FINISHED'}
