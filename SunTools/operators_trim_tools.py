@@ -23,51 +23,83 @@ class OperatorSelectCurrent (bpy.types.Operator):
     bl_label = "Select current Strip"
     bl_description = "Select the Strip on the current frame"
 
-    def invoke (self, context, event):
-        channel = 0
+    def get_strips_current_frame(self, context):
         current_frame = bpy.context.scene.frame_current
-        is_already_selection = False
-        channel_of_selected_strip = 0
-        something_is_selected = False
-        first_selected_strip = None
+        
+        sequences_current_frame = []
+        sequences_ignore = []  # sound strips of pairs
+        partners = {}
+        
+        for sequence in context.scene.sequence_editor.sequences:
+            if (sequence.frame_final_start <= current_frame 
+                    and sequence.frame_final_end > current_frame
+                    and sequence not in sequences_ignore
+            ):
+                partners_sequence = self.find_movie_sound_pair(sequence)
+                if partners_sequence is not None:
+                    sequences_ignore.append(partners_sequence[1])
+                    sequences_current_frame.append(partners_sequence[0])
+                    partners[partners_sequence[0].name] = partners_sequence[1]
+                else:
+                    sequences_current_frame.append(sequence)
+                    
+        return sequences_current_frame, partners
+                
+    def find_movie_sound_pair(self, sequence):
 
-        # find out whether an appropiate strip is already selected
-        for sequence in bpy.context.scene.sequence_editor.sequences:
-            if (sequence.type == 'MOVIE' or sequence.type == 'SCENE' or sequence.type == 'MOVIECLIP' or sequence.type == 'IMAGE' or sequence.type == 'COLOR' or sequence.type == 'MULTICAM'):
-                if (sequence.frame_final_start <= current_frame and sequence.frame_final_end >= current_frame):
-                    if (sequence.select == True):
-                        first_selected_strip = sequence
-                        is_already_selection = True
-                        break
+        movie, sound = None, None
 
-        for sequence in bpy.context.scene.sequence_editor.sequences:
-            if (sequence.type == 'MOVIE' or sequence.type == 'SCENE' or sequence.type == 'MOVIECLIP' or sequence.type == 'IMAGE' or sequence.type == 'COLOR' or sequence.type == 'MULTICAM'):
-                if (sequence.frame_final_start <= current_frame and sequence.frame_final_end >= current_frame):
-                    if (sequence.channel > channel and is_already_selection == False):
-                        bpy.ops.sequencer.select_all(action='DESELECT')
-                        bpy.context.scene.sequence_editor.active_strip = sequence
-                        sequence.select = True
-                        channel = sequence.channel
-                        selectedstrip = sequence
-                        something_is_selected = True
-                    elif (sequence.channel < first_selected_strip.channel and sequence.channel > channel_of_selected_strip and is_already_selection == True):
-                        bpy.ops.sequencer.select_all(action='DESELECT')
-                        bpy.context.scene.sequence_editor.active_strip = sequence
-                        sequence.select = True
-                        channel = sequence.channel
-                        selectedstrip = sequence
-                        channel_of_selected_strip = sequence.channel
-                        something_is_selected = True
+        for sequence_candidate in bpy.context.scene.sequence_editor.sequences:
+            if (sequence.frame_final_start == sequence_candidate.frame_final_start
+                and sequence.frame_final_end == sequence_candidate.frame_final_end
+                and sequence_candidate is not sequence
+            ):
+                if sequence.type in ['MOVIE', 'MOVIECLIP'] and sequence_candidate.type == 'SOUND':
+                    # if more than one result found, it is invalid
+                    if movie is not None or sound is not None:
+                        return None
+                    movie, sound = sequence, sequence_candidate
+                elif sequence_candidate.type in ['MOVIE', 'MOVIECLIP'] and sequence.type == 'SOUND':
+                    # if more than one result found, it is invalid
+                    if movie is not None or sound is not None:
+                        return None
+                    movie, sound = sequence_candidate, sequence
+                
+        return movie, sound if movie and sound else None
 
-        if (something_is_selected == False and is_already_selection == True):
-            bpy.ops.sequencer.select_all(action='DESELECT')
 
-        # select the audio of the strip.
-        # do selection by duration and position and not by name to cover case of externally recorded audio
-        for sequence in bpy.context.scene.sequence_editor.sequences:
-            if (sequence.type == 'SOUND' and something_is_selected == True and bpy.context.scene.select_audio == True):
-                if (sequence.frame_final_start == selectedstrip.frame_final_start and sequence.frame_final_end == selectedstrip.frame_final_end):
-                        sequence.select = True
+    def invoke (self, context, event):
+        # find all strips at current cursor, but exclude pairs
+        strips_current_frame, partner_strips = self.get_strips_current_frame(context)
+        
+        # sort by channel
+        strips_current_frame_sorted = sorted(strips_current_frame, key=lambda x: x.channel)
+
+        # get index of last selected strip in the list
+        indices_selected = []
+        for index, strip in enumerate(strips_current_frame_sorted):
+            if strip.select:
+                indices_selected.append(index)
+                
+        if indices_selected:
+            if indices_selected[-1] < len(strips_current_frame_sorted) - 1:
+                index_strip_select = indices_selected[-1] + 1
+            else:
+                index_strip_select = None
+                
+        else:
+            index_strip_select = 0
+
+        bpy.ops.sequencer.select_all(action='DESELECT')
+        
+        if index_strip_select is not None and strips_current_frame_sorted:
+            print(index_strip_select)
+            print(strips_current_frame_sorted)
+            strip_to_select = strips_current_frame_sorted[index_strip_select]
+            strip_to_select.select = True
+            
+            if strip_to_select.name in partner_strips:
+                partner_strips[strip_to_select.name].select = True
 
         return {'FINISHED'}
         

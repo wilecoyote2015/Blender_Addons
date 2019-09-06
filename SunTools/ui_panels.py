@@ -25,20 +25,21 @@ class PanelMovieManagerBrowser(bpy.types.Panel):
     bl_category = "SunTools"
 
     def draw(self, context):
-        scn = bpy.context.scene
+        scn = context.scene.suntools_info
         layout = self.layout
-
-        row = layout.row()
-        col = row.column()
-        col.prop( scn, "p100" )
-        row.prop( scn, "p75" )
-        row.prop( scn, "p50" )
-        row.prop( scn, "p25" )
-        row = layout.row()
-        col = row.column()
-        col.operator( "file.moviemanager_proxy")
-        row = layout.row()
-        row.prop(scn, 'proxy_recursive')
+        
+        if scn.timeline:
+            row = layout.row()
+            col = row.column()
+            col.prop( scn, "p100" )
+            row.prop( scn, "p75" )
+            row.prop( scn, "p50" )
+            row.prop( scn, "p25" )
+            row = layout.row()
+            col = row.column()
+            col.operator( "file.moviemanager_proxy")
+            row = layout.row()
+            row.prop(scn, 'proxy_recursive')
 
         row = layout.row()
         col = row.column()
@@ -51,14 +52,14 @@ class PanelMovieManager(bpy.types.Panel):
     bl_label = "Movie Manager"
 
     def draw(self, context):
-        scn = bpy.context.scene
+        scn = context.scene.suntools_info
         layout = self.layout
 
-        if not bpy.context.scene.timeline:
+        if not scn.timeline:
             row = layout.row()
             row.operator( "sequencer.moviemanager_switch_back_to_timeline" )
 
-            if bpy.context.scene.source_path != "none":
+            if scn.source_path != "none":
                 row = layout.row()
                 col = row.column()
                 col.operator( "sequencer.moviemanager_hide" )
@@ -67,7 +68,7 @@ class PanelMovieManager(bpy.types.Panel):
 
         row = layout.row()
         col = row.column()
-        if bpy.context.scene.timeline:
+        if scn.timeline:
             col.operator( "sequencer.moviemanager_insert_strip" )
 
             row = layout.row()
@@ -75,7 +76,7 @@ class PanelMovieManager(bpy.types.Panel):
             col.operator( "sequencer.moviemanager_clean" )
 
 
-        if not bpy.context.scene.timeline:
+        if not scn.timeline:
             col.operator( "sequencer.moviemanager_insert_strip_masterscene" )
 
         row = layout.row()
@@ -83,16 +84,16 @@ class PanelMovieManager(bpy.types.Panel):
         col.operator( "sequencer.moviemanager_unmeta" )
         # row.operator( "moviemanager.meta" )
 
-        if not bpy.context.scene.timeline:
+        if not scn.timeline:
             row = layout.row()
             row.operator( "sequencer.moviemanager_set_timeline" )
 
         row = layout.row()
 
-        if bpy.context.scene.timeline:
+        if scn.timeline:
             row.prop( scn, "show_options" )
 
-            if bpy.context.scene.show_options:
+            if scn.show_options:
 
                 row = layout.row()
                 col = row.column()
@@ -119,7 +120,7 @@ class PanelTrimTools(bpy.types.Panel):
     bl_label = "Trim Tools"
 
     def draw(self, context):
-        scn = bpy.context.scene
+        scn = context.scene.suntools_info
         layout = self.layout
 
         row = layout.row()

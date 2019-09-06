@@ -16,29 +16,32 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from operators_edit_range import (
+import bpy
+
+from SunTools.operators_edit_range import (
     OperatorEditRange,
     OperatorBackToTimeline,
     OperatorInsertStripIntoMasterscene
 )
-from operators_movie_manager import (
+from SunTools.operators_movie_manager import (
     OperatorSetTimeline,
     OperatorHideSequences,
     OperatorCreateProxies,
     OperatorUnmeta
 )
-from operators_trim_tools import (
+from SunTools.operators_trim_tools import (
     OperatorSelectCurrent,
     OperatorCutCurrent,
     OperatorTrimLeft,
     OperatorTrimRight,
     OperatorSnapEnd
 )
-from ui_panels import (
+from SunTools.ui_panels import (
     PanelMovieManagerBrowser,
     PanelMovieManager,
     PanelTrimTools
 )
+from SunTools.scene_types import SunToolsInfo
 
 bl_info = {
     "name": "SunTools",
@@ -54,6 +57,7 @@ bl_info = {
     "category": "Sequencer"}
 
 classes = (
+    SunToolsInfo,
     OperatorEditRange,
     OperatorBackToTimeline,
     OperatorInsertStripIntoMasterscene,
@@ -71,8 +75,18 @@ classes = (
     PanelTrimTools
 )
 
-register, unregister = bpy.utils.register_classes_factory(classes)
 
+
+register_classes, unregister_classes = bpy.utils.register_classes_factory(classes)
+
+def register():
+    register_classes()
+    bpy.types.Scene.suntools_info = bpy.props.PointerProperty(type=SunToolsInfo)
+
+def unregister():
+    unregister_classes()
+    del bpy.types.Scene.suntools_info
 
 if __name__ == "__main__":
     register()
+

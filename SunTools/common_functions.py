@@ -16,6 +16,9 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+import bpy
+import os
+
 def act_strip(context):
     try:
         return context.scene.sequence_editor.active_strip
@@ -26,7 +29,7 @@ def get_masterscene():
     masterscene = None
 
     for i in bpy.data.scenes:
-        if (i.timeline == True):
+        if (i.suntools_info.timeline == True):
             masterscene = i
             break
 

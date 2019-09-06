@@ -16,9 +16,12 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# todo: hiding must be revised completely.
+#   Store good in json and also change paths in Json!
+
 import bpy
 import os
-from common_functions import get_masterscene, detect_strip_type
+from SunTools.common_functions import get_masterscene, detect_strip_type
 
 class OperatorSetTimeline (bpy.types.Operator):
     bl_idname = "sequencer.moviemanager_set_timeline"
@@ -27,9 +30,9 @@ class OperatorSetTimeline (bpy.types.Operator):
 
     def invoke (self, context, event):
         for i in bpy.data.scenes:
-            i.timeline = False
+            i.suntools_info.timeline = False
 
-        bpy.context.scene.timeline = True
+        bpy.context.scene.suntools_info.timeline = True
 
         return {'FINISHED'}
 
@@ -40,7 +43,7 @@ class OperatorHideSequences (bpy.types.Operator):
 
     def invoke (self, context, event):
         for scene_clip in bpy.data.scenes:
-            source_path = scene_clip.source_path
+            source_path = scene_clip.suntools_info.source_path
             if (source_path != "none"):
                 self.hide_file(source_path, scene_clip)
 
@@ -61,8 +64,8 @@ class OperatorHideSequences (bpy.types.Operator):
             os.rename(filepath, filepath_new)
 
             for sequence_scene in bpy.data.scenes:
-                if (sequence_scene.source_path == filepath):
-                    sequence_scene.source_path = filepath_new
+                if (sequence_scene.suntools_info.source_path == filepath):
+                    sequence_scene.suntools_info.source_path = filepath_new
                 try:
                     for sequence in sequence_scene.sequence_editor.sequences_all:
                         if (sequence.filepath == bpy.path.relpath(filepath)):
@@ -85,7 +88,10 @@ class OperatorCreateProxies(bpy.types.Operator):
             self.report({'ERROR_INVALID_INPUT'},'Please set a Timeline first.')
             return {'CANCELLED'}
 
-        if (masterscene.p50 == False and masterscene.p25 == False and masterscene.p75 == False and masterscene.p100 == False ):
+        if (masterscene.suntools_info.p50 == False
+                and masterscene.suntools_info.p25 == False
+                and masterscene.suntools_info.p75 == False
+                and masterscene.suntools_info.p100 == False ):
             self.report({'ERROR_INVALID_INPUT'},'No Proxies to create!.')
             return {'CANCELLED'}
 
@@ -110,7 +116,7 @@ class OperatorCreateProxies(bpy.types.Operator):
 
         # store whether to search files recursively from current scene, as qID will have it
         # set to False
-        proxy_recursive = bpy.context.scene.proxy_recursive
+        proxy_recursive = bpy.context.scene.suntools_info.proxy_recursive
 
         #Check if scene exists, if not -> new
         self.switch_to_scene(scene_name='qID')
@@ -123,7 +129,7 @@ class OperatorCreateProxies(bpy.types.Operator):
                 if 'BL_proxy' not in root:
                     filepaths.extend([os.path.join(root, f) for f in files])
         else:
-            filepaths = [ os.path.join(directory, f) for f in os.listdir(directory) if os.isfile(os.path.join(directory,f)) ]
+            filepaths = [ os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory,f)) ]
 
         strips_created = self.create_strips_and_set_proxy_settings(masterscene, filepaths)
 
@@ -158,12 +164,12 @@ class OperatorCreateProxies(bpy.types.Operator):
                 scene_exists = True
 
         if (scene_exists == True):
-            bpy.context.screen.scene = bpy.data.scenes[scene_name]
+            bpy.context.window.scene = bpy.data.scenes[scene_name]
         else:
             new_scene = bpy.data.scenes.new(scene_name)
 
         scene = bpy.data.scenes[scene_name]
-        bpy.context.screen.scene = scene
+        bpy.context.window.scene = scene
 
     def create_strips_and_set_proxy_settings(self, masterscene, filepaths):
         strips_created = False
@@ -178,13 +184,13 @@ class OperatorCreateProxies(bpy.types.Operator):
                 for sequence in bpy.context.scene.sequence_editor.sequences:
                     if (sequence.type == 'MOVIE'):
                         sequence.use_proxy = True
-                        if (masterscene.p25 == True):
+                        if (masterscene.suntools_info.p25 == True):
                             sequence.proxy.build_25 = True
-                        if (masterscene.p50 == True):
+                        if (masterscene.suntools_info.p50 == True):
                             sequence.proxy.build_50 = True
-                        if (masterscene.p75 == True):
+                        if (masterscene.suntools_info.p75 == True):
                             sequence.proxy.build_75 = True
-                        if (masterscene.p100 == True):
+                        if (masterscene.suntools_info.p100 == True):
                             sequence.proxy.build_100 = True
 
         return strips_created

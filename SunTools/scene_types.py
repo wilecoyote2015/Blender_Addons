@@ -18,76 +18,89 @@
 
 # todo: use collection
 
+
+from bpy.props import (IntProperty,
+                       FloatProperty,
+                       BoolProperty,
+                       StringProperty
+                       )
 import bpy
 
-scnType = bpy.types.Scene
+class SunToolsInfo(bpy.types.PropertyGroup):
+    ### IOP Section
+    custom_screen = BoolProperty( name="Custom Screen",
+                                         description = "Use a custom screen layout for range editing ",
+                                         default=False )
 
-### IOP Section 
-BoolProperty = bpy.props.BoolProperty
-scnType.custom_screen = BoolProperty( name="Custom Screen",
-                                     description = "Use a custom screen layout for range editing ",
-                                     default=False )
+    meta = BoolProperty( name="Metastrip",
+                                         description = "Combine audio and video into metastrip on insertion into Masterscene",
+                                         default=False )
 
-scnType.meta = BoolProperty( name="Metastrip",
-                                     description = "Combine audio and video into metastrip on insertion into Masterscene",
-                                     default=False )
+    zoom = BoolProperty( name="Zoom",
+                                         description = "Zoom to the entire Clip after entering Edit Range",
+                                         default=False )
 
-scnType.zoom = BoolProperty( name="Zoom",
-                                     description = "Zoom to the entire Clip after entering Edit Range",
-                                     default=False )
+    show_options = BoolProperty( name="Show Options",
+                                         description = "",
+                                         default=False )
 
-scnType.show_options = BoolProperty( name="Show Options",
-                                     description = "",
-                                     default=False )
+    p25 = BoolProperty( name="25%",
+                                         description = "Proxy sizes to be created",
+                                         default=False )
 
-scnType.p25 = BoolProperty( name="25%",
-                                     description = "Proxy sizes to be created",
-                                     default=False )
+    p50 = BoolProperty( name="50%",
+                                         description = "Proxy sizes to be created",
+                                         default=False )
 
-scnType.p50 = BoolProperty( name="50%",
-                                     description = "Proxy sizes to be created",
-                                     default=False )
+    p75 = BoolProperty( name="75%",
+                                         description = "Proxy sizes to be created",
+                                         default=False )
 
-scnType.p75 = BoolProperty( name="75%",
-                                     description = "Proxy sizes to be created",
-                                     default=False )
+    p100 = BoolProperty( name="100%",
+                                         description = "Proxy sizes to be created",
+                                         default=False )
+    proxy_recursive = BoolProperty(name="Proxy: include subfoders",
+                                         description = 'Generate proxies also for files in subfolders',
+                                         default=False )
 
-scnType.p100 = BoolProperty( name="100%",
-                                     description = "Proxy sizes to be created",
-                                     default=False )
-scnType.proxy_recursive = BoolProperty(name="Proxy: include subfoders",
-                                     description = 'Generate proxies also for files in subfolders',
-                                     default=False )
+    #Is it the timeline scene?
+    timeline = BoolProperty( name="Timeline",
+                                         description = "Is this your actual timeline?",
+                                         default=False)
 
-#Is it the timeline scene?
-scnType.timeline = BoolProperty( name="Timeline",
-                                     description = "Is this your actual timeline?",
-                                     default=False)
+    #Declare usefulness
+    good_clip = BoolProperty( name="Good",
+                                         description = "Is this an useful Clip? ",
+                                         default=False )
 
-#Declare usefulness
-scnType.good_clip = BoolProperty( name="Good",
-                                     description = "Is this an useful Clip? ",
-                                     default=False )
+    #Define Screen to change to for editing range
+    editing_range_screen = StringProperty(
+        name="Editing Range Screen",
+        description="The name of the screen layout you use for editing range",
+        default="Video Editing"
+    )
 
-#Define Screen to change to for editing range
-StringProperty = bpy.props.StringProperty
-editingrangestring = StringProperty(name="Editing Range Screen", description="The name of the screen layout you use for editing range", default="Video Editing" )
-scnType.editing_range_screen = editingrangestring
+    #Define Screen to change to for editing
+    editing_screen = StringProperty(
+        name="Editing Screen",
+        description="The name of the screen layout you use for editing",
+        default="Video Editing"
+    )
 
-#Define Screen to change to for editing
-editingstring = StringProperty(name="Editing Screen", description="The name of the screen layout you use for editing", default="Video Editing" )
-scnType.editing_screen = editingstring
+    #Channel selector
+    channel = IntProperty(
+        name="Channel",
+        description="Define into which channel the new strip will be inserted ",
+        default=1,
+        min=1,
+        max=30,
+        step=1
+    )
 
-#Channel selector
-IntProperty = bpy.props.IntProperty
-intprop = IntProperty( name="Channel", description="Define into which channel the new strip will be inserted ", default=1, min=1, max=30, step=1)
-scnType.channel = intprop
+    #Define the Path of the File the Scene belongs to.
+    source_path = StringProperty(name="Source Path", description="The Path of the File the Scene belongs to.", default="none" )
 
-#Define the Path of the File the Scene belongs to.
-sourcepath = StringProperty(name="Source Path", description="The Path of the File the Scene belongs to.", default="none" )
-scnType.source_path = sourcepath
-
-### TrimTools Section
-scnType.select_audio = BoolProperty( name="Select Audio",
-                                     description = "Select appropriate audio strips, too? ",
-                                     default=True )
+    ### TrimTools Section
+    select_audio = BoolProperty( name="Select Audio",
+                                         description = "Select appropriate audio strips, too? ",
+                                         default=True )
