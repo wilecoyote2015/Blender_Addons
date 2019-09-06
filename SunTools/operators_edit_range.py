@@ -24,15 +24,62 @@ class OperatorEditRange(bpy.types.Operator):
     bl_idname = "file.moviemanager_edit_range"
     bl_label = "Edit Range"
     bl_description = "Edit the Range of the selected clip in the File Browser. Use the new scene's Start and end Frame"
+    
+    NAME_RANGESCENE = 'SunTools_Edit_Range'
 
     def invoke (self, context, event):
-
         masterscene = get_masterscene()
         if (masterscene is None):
             self.report({'ERROR_INVALID_INPUT'},'Please set a Timeline first.')
             return {'CANCELLED'}
 
         #get scene parameters
+        scene_parameters = self.get_scene_parameters(context)
+
+        #Change the current area to VSE so that we can also call the operator from any other area type.
+        bool_IsVSE = True
+        area_type_current = bpy.context.area.type
+        if (area_type_current != 'SEQUENCE_EDITOR'):
+            bpy.context.area.type = 'SEQUENCE_EDITOR'
+            bool_IsVSE = False
+
+        source_path = os.path.join(scene_parameters.directory, filename)
+        
+        # todo: delete the old range scene, but store it in the storage json before.
+        if bpy.data.scenes[self.NAME_RANGESCENE]:
+            self.store_ranges()
+        
+        # todo: source path should always be handled and stored relative!
+        # todo: check if the source path is present in the storage json. If yes, load the parameters
+        # todo: also consider custom range names
+        # todo: in the file manager panel, draw ranges of selected file
+        # and create the new scene. Otherwise, create the scene from scratch
+        
+        strip_type = detect_strip_type(filename)
+        scene_name = filename + "_Range"
+
+        if (strip_type == 'MOVIE' or 'SOUND'):
+            self.enter_edit_range_scene(masterscene, source_path, strip_type, scene_name)
+        else:
+            self.report({'ERROR_INVALID_INPUT'}, 'Invalid file format')
+            return {'CANCELLED'}
+
+        if (masterscene.zoom == True and bool_IsVSE == True):
+            bpy.ops.sequencer.view_selected()
+        if (bool_IsVSE == False):
+            bpy.context.area.type = area_type_current
+
+        #Change to custom layout if wanted.
+        if (masterscene.custom_screen == True):
+            for screen in bpy.data.screens:
+                bpy.ops.screen.screen_set(delta=1)
+                if (bpy.context.screen.name == masterscene.editing_range_screen):
+                    break
+            bpy.context.screen.scene = bpy.data.scenes[scene_name]
+
+        return {'FINISHED'}
+    
+    def get_scene_parameters(self, context):
         for a in context.window.screen.areas:
             if a.type == 'FILE_BROWSER':
                 scene_parameters = a.spaces[0].params
@@ -46,37 +93,15 @@ class OperatorEditRange(bpy.types.Operator):
         if scene_parameters.filename == '':
             self.report({'ERROR_INVALID_INPUT'}, 'No file selected')
             return {'CANCELLED'}
+        
+        return scene_parameters
 
-        #Change the current area to VSE so that we can also call the operator from any other area type.
-        bool_IsVSE = True
-        if (bpy.context.area.type != 'SEQUENCE_EDITOR'):
-            bpy.context.area.type = 'SEQUENCE_EDITOR'
-            bool_IsVSE = False
-
-        source_path = os.path.join(scene_parameters.directory, filename)
-        strip_type = detect_strip_type(filename)
-        scene_name = filename + "_Range"
-
-        if (strip_type == 'MOVIE' or 'SOUND'):
-            self.create_new_scene_with_strip_and_switch_to_scene(masterscene, source_path, strip_type, scene_name)
-        else:
-            self.report({'ERROR_INVALID_INPUT'}, 'Invalid file format')
-            return {'CANCELLED'}
-
-        if (masterscene.zoom == True and bool_IsVSE == True):
-            bpy.ops.sequencer.view_selected()
-        if (bool_IsVSE == False):
-            bpy.context.area.type = 'FILE_BROWSER'
-
-        #Change to custom layout if wanted.
-        if (masterscene.custom_screen == True):
-            for screen in bpy.data.screens:
-                bpy.ops.screen.screen_set(delta=1)
-                if (bpy.context.screen.name == masterscene.editing_range_screen):
-                    break
-            bpy.context.screen.scene = bpy.data.scenes[scene_name]
-
-        return {'FINISHED'}
+    def enter_edit_range_scene(self, masterscene, source_path, strip_type, scene_name):
+        # check if range for source path exists 
+        
+        ranges = self.get_ranges_file(source_path)
+        if ranges is None:
+            self.
 
     def create_new_scene_with_strip_and_switch_to_scene(self, masterscene, source_path, strip_type, scene_name):
         # get the according scene
