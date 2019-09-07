@@ -25,7 +25,7 @@ from SunTools.operators_edit_range import (
 )
 from SunTools.operators_movie_manager import (
     OperatorSetTimeline,
-    OperatorHideSequences,
+    # OperatorHideSequences,
     OperatorCreateProxies,
     OperatorUnmeta
 )
@@ -62,7 +62,7 @@ classes = (
     OperatorBackToTimeline,
     OperatorInsertStripIntoMasterscene,
     OperatorSetTimeline,
-    OperatorHideSequences,
+    # OperatorHideSequences,
     OperatorCreateProxies,
     OperatorUnmeta,
     OperatorSelectCurrent,

@@ -113,3 +113,10 @@ def detect_strip_type(filepath):
         type = None
 
     return type
+
+# def switch_workspace(name_workspace):
+#     bpy.context.window.workspace = bpy.data.workspaces[name_workspace]
+
+def switch_workspace(screen_selection):
+
+    bpy.context.window.workspace = bpy.data.workspaces[screen_selection]

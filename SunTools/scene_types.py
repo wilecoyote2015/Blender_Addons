@@ -22,23 +22,24 @@
 from bpy.props import (IntProperty,
                        FloatProperty,
                        BoolProperty,
-                       StringProperty
+                       StringProperty,
+                    EnumProperty
                        )
 import bpy
 
 class SunToolsInfo(bpy.types.PropertyGroup):
     ### IOP Section
-    custom_screen = BoolProperty( name="Custom Screen",
-                                         description = "Use a custom screen layout for range editing ",
-                                         default=False )
+    # custom_screen = BoolProperty( name="Custom Workspace",
+    #                                      description = "Use a custom workspace layout for range editing ",
+    #                                      default=False )
 
     meta = BoolProperty( name="Metastrip",
                                          description = "Combine audio and video into metastrip on insertion into Masterscene",
                                          default=False )
-
-    zoom = BoolProperty( name="Zoom",
-                                         description = "Zoom to the entire Clip after entering Edit Range",
-                                         default=False )
+    #
+    # zoom = BoolProperty( name="Zoom",
+    #                                      description = "Zoom to the entire Clip after entering Edit Range",
+    #                                      default=False )
 
     show_options = BoolProperty( name="Show Options",
                                          description = "",
@@ -67,25 +68,26 @@ class SunToolsInfo(bpy.types.PropertyGroup):
     timeline = BoolProperty( name="Timeline",
                                          description = "Is this your actual timeline?",
                                          default=False)
+    #
+    # #Declare usefulness
+    # good_clip = BoolProperty( name="Good",
+    #                                      description = "Is this an useful Clip? ",
+    #                                      default=False )
 
-    #Declare usefulness
-    good_clip = BoolProperty( name="Good",
-                                         description = "Is this an useful Clip? ",
-                                         default=False )
+    def avail_screens(self, context):
+        items = []
+        for i, elem in enumerate(bpy.data.workspaces):
+            items.append((elem.name, elem.name, elem.name))
+        return items
 
-    #Define Screen to change to for editing range
-    editing_range_screen = StringProperty(
-        name="Editing Range Screen",
-        description="The name of the screen layout you use for editing range",
-        default="Video Editing"
-    )
 
-    #Define Screen to change to for editing
-    editing_screen = StringProperty(
-        name="Editing Screen",
-        description="The name of the screen layout you use for editing",
-        default="Video Editing"
-    )
+    enum_edit_screen = EnumProperty(items=avail_screens,
+                                    name="Editing Workspace")
+
+    enum_range_screen = EnumProperty(items=avail_screens,
+                                    name="Range Editing Workspace")
+
+
 
     #Channel selector
     channel = IntProperty(

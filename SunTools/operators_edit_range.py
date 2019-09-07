@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from SunTools.common_functions import get_masterscene, detect_strip_type
+from SunTools.common_functions import get_masterscene, detect_strip_type, switch_workspace
 import bpy
 import json
 import os
@@ -99,19 +99,22 @@ class OperatorEditRange(bpy.types.Operator):
         # enter the scene
         context.window.scene = scene_range
         
+        # if custom layout wanted, switch layout
+        switch_workspace(masterscene.suntools_info.enum_range_screen)
+        
     def get_text_ranges(self):
         if self.NAME_RANGESCENE in bpy.data.texts:
             return bpy.data.texts[self.NAME_RANGESCENE]
+        else:
+            return bpy.data.texts.new(self.NAME_RANGESCENE)
 
-        return None
-        
     def get_ranges(self):
         text_ranges = self.get_text_ranges()
-        if text_ranges:
+        if text_ranges.as_string():
             return json.loads(text_ranges.as_string())
         else:
-            return None
-        
+            return {}
+
     def get_ranges_file(self, path_source):
         dict_ranges = self.get_ranges()
         if dict_ranges is not None:
@@ -121,17 +124,16 @@ class OperatorEditRange(bpy.types.Operator):
         
     def store_ranges(self, scene_range):
         dict_ranges = self.get_ranges()
-        if not dict_ranges:
-            text_ranges = bpy.data.texts.new(self.NAME_RANGESCENE)
-            dict_ranges = {}
-        else:
-            text_ranges = self.get_text_ranges()
         
         path_source = scene_range.suntools_info.source_path
-        dict_ranges[path_source] = self.get_ranges_in_scene(scene_range)
 
+        dict_ranges[path_source] = self.get_ranges_in_scene(scene_range)
+        self.dict_to_text_ranges(dict_ranges)
+    
+    def dict_to_text_ranges(self, dict):
+        text_ranges = self.get_text_ranges()
         text_ranges.clear()
-        text_ranges.from_string(json.dumps(dict_ranges, indent=4))
+        text_ranges.from_string(json.dumps(dict, indent=4))
     
     def get_ranges_in_scene(self, scene):
         ranges = []
@@ -196,14 +198,9 @@ class OperatorBackToTimeline(bpy.types.Operator):
             self.report({'ERROR_INVALID_INPUT'},'Please set a Timeline first.')
             return {'CANCELLED'}
 
-        if (masterscene.suntools_info.custom_screen == True):
-            for screen in bpy.data.screens:
-                bpy.ops.screen.screen_set(delta=1)
-                if (bpy.context.screen.name == masterscene.suntools_info.editing_screen):
-                    break
-            bpy.context.window.scene = masterscene
-        else:
-            bpy.context.window.scene = masterscene
+        # if custom layout wanted, switch layout
+        switch_workspace(masterscene.suntools_info.enum_edit_screen)
+        bpy.context.window.scene = masterscene
 
         return {'FINISHED'}
 

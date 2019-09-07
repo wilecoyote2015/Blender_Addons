@@ -36,42 +36,52 @@ class OperatorSetTimeline (bpy.types.Operator):
 
         return {'FINISHED'}
 
-class OperatorHideSequences (bpy.types.Operator):
-    bl_idname = "sequencer.moviemanager_hide"
-    bl_label = "Hide"
-    bl_description = "Hide clips that are not useful"
-
-    def invoke (self, context, event):
-        for scene_clip in bpy.data.scenes:
-            source_path = scene_clip.suntools_info.source_path
-            if (source_path != "none"):
-                self.hide_file(source_path, scene_clip)
-
-        return {'FINISHED'}
-
-    def hide_file(self, filepath, scene_clip):
-        path_directory, filename = os.path.split(filepath)
-
-        changed = False
-        if (filename[0] == "." and scene_clip.good_clip == True):
-            filename_new = filename[1:]
-            changed = True
-        elif (filename[0] != "." and scene_clip.good_clip == False):
-            filename_new = "." + filename
-            changed = True
-        if (changed == True):
-            filepath_new = path_directory + filename_new
-            os.rename(filepath, filepath_new)
-
-            for sequence_scene in bpy.data.scenes:
-                if (sequence_scene.suntools_info.source_path == filepath):
-                    sequence_scene.suntools_info.source_path = filepath_new
-                try:
-                    for sequence in sequence_scene.sequence_editor.sequences_all:
-                        if (sequence.filepath == bpy.path.relpath(filepath)):
-                            sequence.filepath = bpy.path.relpath(filepath_new)
-                except:
-                    print("hadn't a sequencer. poor little scene!")
+# todo: the operator must be updated for the edit range text storage.
+# class OperatorHideSequences (bpy.types.Operator):
+#     bl_idname = "sequencer.moviemanager_hide"
+#     bl_label = "Hide"
+#     bl_description = "Hide clips that are not useful"
+#
+#     def invoke (self, context, event):
+#         ranges = common_functions.get_ranges()
+#
+#         # rename the files in filesystem
+#         for filepath, ranges in ranges.keys():
+#
+#
+#         # rename the files in the ranges store
+#
+#
+#         for scene_clip in bpy.data.scenes:
+#             source_path = scene_clip.suntools_info.source_path
+#             if (source_path != "none"):
+#                 self.hide_file(source_path, scene_clip)
+#
+#         return {'FINISHED'}
+#
+#     def hide_file(self, filepath, scene_clip):
+#         path_directory, filename = os.path.split(filepath)
+#
+#         changed = False
+#         if (filename[0] == "." and scene_clip.good_clip == True):
+#             filename_new = filename[1:]
+#             changed = True
+#         elif (filename[0] != "." and scene_clip.good_clip == False):
+#             filename_new = "." + filename
+#             changed = True
+#         if (changed == True):
+#             filepath_new = path_directory + filename_new
+#             os.rename(filepath, filepath_new)
+#
+#             for sequence_scene in bpy.data.scenes:
+#                 if (sequence_scene.suntools_info.source_path == filepath):
+#                     sequence_scene.suntools_info.source_path = filepath_new
+#                 try:
+#                     for sequence in sequence_scene.sequence_editor.sequences_all:
+#                         if (sequence.filepath == bpy.path.relpath(filepath)):
+#                             sequence.filepath = bpy.path.relpath(filepath_new)
+#                 except:
+#                     print("hadn't a sequencer. poor little scene!")
 
 
 class OperatorCreateProxies(bpy.types.Operator):

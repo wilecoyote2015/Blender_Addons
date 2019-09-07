@@ -59,11 +59,11 @@ class PanelMovieManager(bpy.types.Panel):
             row = layout.row()
             row.operator( "sequencer.moviemanager_switch_back_to_timeline" )
 
-            if scn.source_path != "none":
-                row = layout.row()
-                col = row.column()
-                col.operator( "sequencer.moviemanager_hide" )
-                row.prop(scn, "good_clip" )
+            # if scn.source_path != "none":
+            #     row = layout.row()
+            #     col = row.column()
+            #     col.operator( "sequencer.moviemanager_hide" )
+            #     row.prop(scn, "good_clip" )
 
 
         row = layout.row()
@@ -102,13 +102,18 @@ class PanelMovieManager(bpy.types.Panel):
                 row = layout.row()
                 col = row.column()
 
-                col.prop( scn, "editing_screen" )
-                col.prop( scn, "editing_range_screen" )
+                # col.prop( scn, "editing_screen" )
+                # col.prop( scn, "editing_range_screen" )
+                # comp screen selector
+                col.prop(scn, "enum_range_screen")
+
+                # editing screen selector
+                col.prop(scn, "enum_edit_screen")
 
                 row = layout.row()
                 col = row.column()
-                row.prop( scn, "custom_screen" )
-                col.prop( scn, "zoom" )
+                # row.prop( scn, "custom_screen" )
+                # col.prop( scn, "zoom" )
 
                 row = layout.row()
                 row.prop( scn, "meta" )
