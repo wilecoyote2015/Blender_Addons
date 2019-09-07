@@ -42,7 +42,7 @@ class ESWC_Info(bpy.types.PropertyGroup):
         name="Show composite strips",
         description="If activated, the composite are shown in the timeline. Otherwise, the source videos are visible.",
         default=True,
-        update=toggle_composition_visibility)
+        update='toggle_composition_visibility')
 
     bool_reuse_compositions = BoolProperty(
         name="Reuse compositions",
@@ -124,12 +124,12 @@ class ESWC_Info(bpy.types.PropertyGroup):
 
     def avail_screens(self, context):
         items = []
-        for i, elem in enumerate(bpy.data.screens):
+        for i, elem in enumerate(bpy.data.workspaces):
             items.append((str(i), elem.name, elem.name))
         return items
 
     enum_edit_screen = EnumProperty(items=avail_screens,
-                                    name="Editing Screen")
+                                    name="Editing Workspace")
 
     enum_comp_screen = EnumProperty(items=avail_screens,
-                                    name="Compositing Screen")
+                                    name="Compositing Workspace")
