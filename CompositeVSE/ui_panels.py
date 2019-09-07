@@ -24,9 +24,9 @@ class CompPanel(bpy.types.Panel):
     bl_category = "Edit Strip with Compositor"
     bl_region_type = "UI"
 
-    @classmethod
-    def poll(cls, context):
-        return bpy.context.scene.sequence_editor is not None
+    # @classmethod
+    # def poll(cls, context):
+    #     return bpy.context.scene.sequence_editor is not None
 
     def draw(self, context):
         scn = context.scene

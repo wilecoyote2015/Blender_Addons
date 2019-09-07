@@ -3,8 +3,10 @@
 LABEL_ID = 'HighBitDepth_'
 
 import shutil
-from os import path
+from os import path, makedirs
 import bpy
+import subprocess
+
 
 def render_post(scene):
     if scene.use_nodes:

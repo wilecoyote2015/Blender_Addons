@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import common_functions
+import CompositeVSE.common_functions
 
 class OperatorCreateCompositionFromStrip(bpy.types.Operator):
     bl_idname = "sequencer.eswc_single_comp"

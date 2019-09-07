@@ -125,7 +125,7 @@ class ESWC_Info(bpy.types.PropertyGroup):
     def avail_screens(self, context):
         items = []
         for i, elem in enumerate(bpy.data.workspaces):
-            items.append((str(i), elem.name, elem.name))
+            items.append((elem.name, elem.name, elem.name))
         return items
 
     enum_edit_screen = EnumProperty(items=avail_screens,

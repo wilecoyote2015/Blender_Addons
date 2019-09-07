@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-import common_functions
+import CompositeVSE.common_functions
 import bpy
 
 class Switch_to_Composite_Operator(bpy.types.Operator):

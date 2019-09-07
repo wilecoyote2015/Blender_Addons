@@ -19,15 +19,7 @@
 import bpy
 
 def switch_screen(context, eswc_screen):
-    # get the name of the desired composite screen
-    for index, screen in enumerate(bpy.data.workspaces):
-        if index == int(eswc_screen):
-            screen_name = screen.name
-            bpy.context.window.workspace = bpy.data.workspaces[screen_name]
-            break
-
-
-
+    bpy.context.window.workspace = bpy.data.workspaces[eswc_screen]
 
 def select_only_strip(strip):
     # deselect all strips and select only the composite strip
