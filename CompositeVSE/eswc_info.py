@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+from CompositeVSE.common_functions import toggle_composition_visibility
+
 from bpy.props import (IntProperty,
                        FloatProperty,
                        EnumProperty,
@@ -42,7 +44,7 @@ class ESWC_Info(bpy.types.PropertyGroup):
         name="Show composite strips",
         description="If activated, the composite are shown in the timeline. Otherwise, the source videos are visible.",
         default=True,
-        update='toggle_composition_visibility')
+        update=toggle_composition_visibility)
 
     bool_reuse_compositions = BoolProperty(
         name="Reuse compositions",

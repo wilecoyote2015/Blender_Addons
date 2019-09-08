@@ -75,8 +75,6 @@ classes = (
     PanelTrimTools
 )
 
-
-
 register_classes, unregister_classes = bpy.utils.register_classes_factory(classes)
 
 def register():

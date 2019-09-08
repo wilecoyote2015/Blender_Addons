@@ -17,7 +17,8 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-import CompositeVSE.common_functions
+from CompositeVSE import common_functions
+import os
 
 class OperatorCreateCompositionFromStrip(bpy.types.Operator):
     bl_idname = "sequencer.eswc_single_comp"
@@ -69,7 +70,7 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
         new_scene.eswc_info.type_original_strip = original_strip.type
         new_scene.eswc_info.path_input = common_functions.get_filepath_strip(original_strip)
 
-        context.screen.scene.update()
+        # context.screen.scene.update()
 
         return new_scene
 
@@ -143,10 +144,10 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
         image_node.use_cyclic = False
         image_node.use_auto_refresh = True
 
-        # Update scene
-        new_scene.update()
+        # # Update scene
+        # new_scene.update()
 
-        new_scene.frame_current = 2
+        # new_scene.frame_current = 2
 
         # create scale node
         if eswc_info.bool_add_scale:

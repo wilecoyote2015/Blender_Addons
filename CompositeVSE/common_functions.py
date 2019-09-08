@@ -17,6 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
+import os
 
 def switch_screen(context, eswc_screen):
     bpy.context.window.workspace = bpy.data.workspaces[eswc_screen]
@@ -29,7 +30,7 @@ def select_only_strip(strip):
         if i.name != strip.name:
             i.select = False
     bpy.context.scene.sequence_editor.active_strip = strip
-    bpy.context.scene.update()
+    # bpy.context.scene.update()
 
 
 def create_strip_for_composition(strip_composition):
@@ -42,7 +43,7 @@ def create_strip_for_composition(strip_composition):
     new_strip = None
     if eswc_info_composite.type_original_strip == 'MOVIE':
         bpy.ops.sequencer.movie_strip_add(filepath=path_input, replace_sel=True, sound=False)
-        bpy.context.scene.update()
+        # bpy.context.scene.update()
         new_strip = bpy.context.scene.sequence_editor.active_strip
     elif eswc_info_composite.type_original_strip == 'IMAGE':
         # todo: respect files. For this, a new string prop collection holding all files
@@ -51,7 +52,7 @@ def create_strip_for_composition(strip_composition):
         # this list of files because if other files are used, it is not the same source albeit
         # it referes to the same directory.
         bpy.ops.sequencer.image_strip_add(directory=path_input, replace_sel=True)
-        bpy.context.scene.update()
+        # bpy.context.scene.update()
         new_strip = bpy.context.scene.sequence_editor.active_strip
 
     if new_strip is not None:
@@ -82,25 +83,60 @@ def toggle_composition_visibility(self, context):
 
 def copy_all_settings(scene_a, scene_b):
     '''
-    Copy all listed settings for scene strip A scene_a.node_tree.use_opencl
+    Copy all listed settings for scene strip A scene_a
     to match original scene strip B
     '''
-    # scene_a.use_translation =  scene_b.use_translation
-    scene_a.use_reverse_frames = scene_b.use_reverse_frames
-    scene_a.use_float = scene_b.use_float
-    scene_a.use_flip_y = scene_b.use_flip_y
-    scene_a.use_deinterlace = scene_b.use_deinterlace
-    scene_a.use_default_fade = scene_b.use_default_fade
-    scene_a.strobe = scene_b.strobe
-    scene_a.speed_factor = scene_b.speed_factor
-    scene_a.mute = scene_b.mute
-    scene_a.lock = scene_b.lock
-    scene_a.effect_fader = scene_b.effect_fader
-    scene_a.color_saturation = scene_b.color_saturation
-    scene_a.color_multiply = scene_b.color_multiply
-    scene_a.blend_type = scene_b.blend_type
-    scene_a.blend_alpha = scene_b.blend_alpha
-    scene_a.use_flip_x = scene_b.use_flip_x
+    
+    settings = [
+        'blend_type',
+        'blend_alpha',
+        'use_flip_x',
+        'use_flip_y',
+        'use_translation',
+        'use_crop',
+        'strobe',
+        'playback_direction',
+        'color_saturation',
+        'color_multiply',
+        'use_float'
+    ]
+    
+    settings_multiple = [
+        ['crop', 'min_x'],
+        ['crop', 'max_x'],
+        ['crop', 'min_y'],
+        ['crop', 'max_y'],
+        ['transform', 'offset_x'],
+        ['transform', 'offset_y'],
+    ]
+    
+    # todo: if setting is list, get until last one
+    for setting in settings:
+        if getattr(scene_b, setting):
+            setattr(scene_a, setting, getattr(scene_b, setting))
+        
+    for setting in settings_multiple:
+        attr_scene_b = getattr(scene_b, setting[0])
+        attr_scene_a = getattr(scene_a, setting[0])
+        if attr_scene_b is not None:
+            setattr(attr_scene_a, setting[1], getattr(attr_scene_b, setting[1]))
+    # # scene_a.use_translation =  scene_b.use_translation
+    # # scene_a.use_reverse_frames = scene_b.use_reverse_frames
+    # scene_a.use_float = scene_b.use_float
+    # scene_a.use_flip_x = scene_b.use_flip_x
+    # scene_a.use_flip_y = scene_b.use_flip_y
+    # scene_a.use_deinterlace = scene_b.use_deinterlace
+    # scene_a.use_default_fade = scene_b.use_default_fade
+    # scene_a.strobe = scene_b.strobe
+    # scene_a.speed_factor = scene_b.speed_factor
+    # scene_a.mute = scene_b.mute
+    # scene_a.lock = scene_b.lock
+    # scene_a.effect_fader = scene_b.effect_fader
+    # scene_a.color_saturation = scene_b.color_saturation
+    # scene_a.color_multiply = scene_b.color_multiply
+    # scene_a.blend_type = scene_b.blend_type
+    # scene_a.blend_alpha = scene_b.blend_alpha
+
     
 def insert_scene_timeline(new_scene, original_strip, context):
 
@@ -115,7 +151,7 @@ def insert_scene_timeline(new_scene, original_strip, context):
         frame_start=original_strip.frame_start,
         replace_sel=True, scene=new_scene.name)
 
-    context.scene.update()
+    # context.scene.update()
 
     # make composite strip  active
     # todo: is this really the correct way to get the newly created strip?
@@ -132,13 +168,13 @@ def replace_strip(strip_to_replace, strip_replacement, context):
     name_strip = strip_to_replace.name
 
     # Update scene
-    context.scene.update()
+    # context.scene.update()
 
     # # Camera override
     # todo: this in insert_scene_timeline?
     # strip_replacement.scene_camera = editing_scene.camera
 
-    context.scene.update()
+    # context.scene.update()
 
     # Copy Settings
     if eswc_info.settings == "All":

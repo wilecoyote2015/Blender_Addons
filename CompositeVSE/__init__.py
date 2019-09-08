@@ -35,7 +35,7 @@ bl_info = {
     "description": "Send one or more Sequencer strips to the Compositor, gently",
     "author": "Carlos Padial, TMW, Björn Sonnenschein",
     "version": (0, 15),
-    "blender": (2, 80),
+    "blender": (2, 80, 0),
     "location": "Sequencer > UI panel, Node Editor > UI panel",
     "wiki_url": "None Yet"
                 "None Yet",
@@ -57,14 +57,38 @@ classes = (
 register_classes, unregister_classes = bpy.utils.register_classes_factory(classes)
 
 def register():
+    print('Pre')
     register_classes()
     bpy.types.Scene.eswc_info = bpy.props.PointerProperty(type=ESWC_Info)
     bpy.app.handlers.render_init.append(render_init)
+    
+    ### Props for identification of scenes belonging to strips
+    # strip composite scene name; used to interchange movies and composites
+    bpy.types.ImageSequence.composite_scene = bpy.props.StringProperty(
+        name="Composite Scene",
+        description="The name of the composite scene associated to the strip",
+        default=""
+    )
+    bpy.types.MovieSequence.composite_scene = bpy.props.StringProperty(
+        name="Composite Scene",
+        description="The name of the composite scene associated to the strip",
+        default=""
+    )
+    # todo: MovieClip sequences are not supported yet.
+    bpy.types.MovieClipSequence.composite_scene = bpy.props.StringProperty(
+        name="Composite Scene",
+        description="The name of the composite scene associated to the strip",
+        default=""
+    )
 
 
 def unregister():
     unregister_classes()
     del bpy.types.Scene.eswc_info
+    del bpy.types.MovieClipSequence.composite_scene
+    del bpy.types.MovieSequence.composite_scene
+    del bpy.types.ImageSequence.composite_scene
+
     bpy.app.handlers.render_init.remove(render_init)
 
 if __name__ == "__main__":
