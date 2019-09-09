@@ -29,7 +29,6 @@ def render_post_compositor(scene):
             shutil.rmtree(path_temp_dir)
 
 def render_pre(scene):
-    print('PRE')
     if scene.use_nodes:
         insert_framegrabs_for_inputs(scene)
 
@@ -58,7 +57,6 @@ def apply_function_compositing_scene(scene, function):
                     and sequence.frame_final_start <= scene.frame_current
                     and sequence.frame_final_end > scene.frame_current
                     and sequence.scene.use_nodes):
-                print('found')
                 function(sequence.scene)
 
 def insert_framegrabs_for_inputs(scene):
@@ -188,11 +186,6 @@ def get_dir_output():
     if not path.exists(path_dir_output):
         makedirs(path_dir_output)
     return '/run/media/bjoern/daten'
-
-def render_init():
-    print('Initializing high bit depth fix')
-    if bpy.context.scene.eswc_info.bool_use_high_bit_depth_fix:
-        print('Initializing high bit depth fix')
 
 def register_handlers():
     bpy.app.handlers.render_pre.append(render_pre_sequencer)
