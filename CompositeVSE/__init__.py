@@ -28,11 +28,7 @@ from CompositeVSE.eswc_info import ESWC_Info
 
 import bpy
 
-# todo: init render_init() on update of tickbox?
-
 # todo: also handle clips in metastrips for edit range
-
-# todo: always show composite strips on render_ini(), and reset to scene value after render
 
 bl_info = {
     "name": "Edit Strip With Compositor",
