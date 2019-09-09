@@ -6,8 +6,14 @@ import shutil
 from os import path, makedirs
 import bpy
 import subprocess
+from bpy.app.handlers import persistent
 
+@persistent
+def render_pre_sequencer(scene):
+    if scene.eswc_info.bool_use_high_bit_depth_fix:
+        apply_function_compositing_scene(scene, render_pre)
 
+@persistent
 def render_post_compositor(scene):
     if scene.use_nodes:
         #name_master_scene = scene.eswc_info.master_scene
@@ -22,6 +28,10 @@ def render_post_compositor(scene):
         if path.exists(path_temp_dir):
             shutil.rmtree(path_temp_dir)
 
+def render_pre(scene):
+    print('PRE')
+    if scene.use_nodes:
+        insert_framegrabs_for_inputs(scene)
 
 def insert_inputs_for_framegrabs(scene):
     tree = scene.node_tree
@@ -41,11 +51,6 @@ def insert_input_for_framegrab(scene, node_framegrab):
     bpy.data.images.remove(node_framegrab.image)
     scene.node_tree.nodes.remove(node_framegrab)
 
-def render_pre(scene):
-    print('PRE')
-    if scene.use_nodes:
-        insert_framegrabs_for_inputs(scene)
-
 def apply_function_compositing_scene(scene, function):
     if scene.sequence_editor:
         for sequence in scene.sequence_editor.sequences_all:
@@ -55,11 +60,6 @@ def apply_function_compositing_scene(scene, function):
                     and sequence.scene.use_nodes):
                 print('found')
                 function(sequence.scene)
-
-def render_pre_sequencer(scene):
-    if scene.eswc_info.bool_use_high_bit_depth_fix:
-        apply_function_compositing_scene(scene, render_pre)
-
 
 def insert_framegrabs_for_inputs(scene):
     tree = scene.node_tree
