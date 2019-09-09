@@ -28,7 +28,8 @@ from CompositeVSE.eswc_info import ESWC_Info
 
 import bpy
 
-# todo: also handle clips in metastrips for edit range
+# todo: also handle clips in metastrips for creating strip from composition if metastrip contains sound, corresponding
+#  video only
 
 bl_info = {
     "name": "Edit Strip With Compositor",
