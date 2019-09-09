@@ -28,7 +28,11 @@ from CompositeVSE.eswc_info import ESWC_Info
 
 import bpy
 
+# todo: init render_init() on update of tickbox?
+
 # todo: also handle clips in metastrips for edit range
+
+# todo: always show composite strips on render_ini(), and reset to scene value after render
 
 bl_info = {
     "name": "Edit Strip With Compositor",
@@ -57,7 +61,7 @@ classes = (
 register_classes, unregister_classes = bpy.utils.register_classes_factory(classes)
 
 def register():
-    print('Pre')
+    print('Registered VSE Compositor addon')
     register_classes()
     bpy.types.Scene.eswc_info = bpy.props.PointerProperty(type=ESWC_Info)
     bpy.app.handlers.render_init.append(render_init)

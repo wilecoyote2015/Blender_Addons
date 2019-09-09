@@ -180,7 +180,9 @@ def get_dir_output():
     return '/run/media/bjoern/daten'
 
 def render_init():
+    print('Initializing high bit depth fix')
     if bpy.context.scene.eswc_info.bool_use_high_bit_depth_fix:
+        print('Initializing high bit depth fix')
         bpy.app.handlers.render_pre.append(render_pre_sequencer)
         bpy.app.handlers.render_post.append(render_post)
         bpy.app.handlers.render_cancel.append(render_post)
