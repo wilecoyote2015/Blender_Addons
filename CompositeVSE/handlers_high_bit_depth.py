@@ -105,16 +105,20 @@ def insert_framegrab_for_input(scene, node):
 def transfer_image_links_between_nodes(node_source, node_target, scene):
     # store all image connections
     links_outputs = node_source.outputs['Image'].links
-    sockets_linked = [link.to_socket for link in links_outputs]
+    sockets_connected_to_source = [link.to_socket for link in links_outputs]
+
+    # connect all connections that were present at the old input node to the new one
+    socket_image = node_target.outputs['Image']
+    for socket_connected_to_source in sockets_connected_to_source:
+        scene.node_tree.links.new(socket_image, socket_connected_to_source)
+
+    # links have changed. Thus, in order to delete the links from source node, the links must be
+    # fetched again
+    links_outputs = node_source.outputs['Image'].links
 
     # remove all connections from the output links
     for link in links_outputs:
         scene.node_tree.links.remove(link)
-
-    # connect all connections that were present at the old input node to the new one
-    socket_image = node_target.outputs['Image']
-    for socket_target in sockets_linked:
-        link = scene.node_tree.links.new(socket_image, socket_target)
 
 def get_frame_movie(node, scene):
     if node.bl_static_type == 'MOVIECLIP':
@@ -173,7 +177,7 @@ def render_framegrab(filepath, frame, filename):
     return path_output
 
 def get_path_dir_output():
-    path_blend = bpy.path.abspath()
+    path_blend = bpy.path.abspath('.')
     return path.join(path_blend, 'temp_high_bit_depth')
 
 
