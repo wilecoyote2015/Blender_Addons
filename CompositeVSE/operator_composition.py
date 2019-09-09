@@ -132,6 +132,10 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
                 strip_source.source = 'MOVIE'
             image_node.image = strip_source
 
+        # use colorspace of source file
+        image_node.image.colorspace_settings.name = strip.colorspace_settings.name
+
+
         # Other input settings
         # length shall be original movie length.
         # todo: is this necessary? Doesn't the strip have the duration by default?
