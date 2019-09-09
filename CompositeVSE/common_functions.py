@@ -57,6 +57,7 @@ def create_strip_for_composition(strip_composition):
 
     if new_strip is not None:
         new_strip.composite_scene = strip_composition.scene.name
+
         replace_strip(strip_composition, new_strip, bpy.context)
     else:
         print({'ERROR_INVALID_INPUT'}, 'The following composite strip refers to an invalid strip type:'

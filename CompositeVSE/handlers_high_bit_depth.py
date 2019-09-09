@@ -57,6 +57,11 @@ def apply_function_compositing_scene(scene, function):
                     and sequence.frame_final_start <= scene.frame_current
                     and sequence.frame_final_end > scene.frame_current
                     and sequence.scene.use_nodes):
+                
+                # it is pre render, so that the frame in the sequence's scene is not the correct frame.
+                # hence, calculate the correct frame in the scene
+                frame_in_sequence = scene.frame_current - sequence.frame_start + 1  # +1 because frames start at 1
+                sequence.scene.frame_current = frame_in_sequence
                 function(sequence.scene)
 
 def insert_framegrabs_for_inputs(scene):
@@ -130,6 +135,7 @@ def get_frame_movie(node, scene):
 
 def calc_frame_movie(movie, scene):
     current_frame = scene.frame_current
+    print(current_frame)
 
     return current_frame - movie.frame_start + movie.frame_offset
 
@@ -156,6 +162,8 @@ def render_framegrab(filepath, frame, filename):
                                stdout=subprocess.PIPE).stdout.decode('utf-8').split('/')
     framerate_float = float(framerate[0]) / float(framerate[1])
     seconds = frame / framerate_float
+    
+    print(seconds)
 
     filename_with_extension = '{}.tiff'.format(filename)
     path_output = path.join(get_dir_output(), filename_with_extension)
