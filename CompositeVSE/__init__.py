@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from CompositeVSE.handlers_high_bit_depth import render_init
+from CompositeVSE.handlers_high_bit_depth import register_handlers, unregister_handlers
 from CompositeVSE.operator_composition import OperatorCreateCompositionFromStrip
 from CompositeVSE.operators_navigation import (
     Switch_back_to_Timeline_Operator,
@@ -64,10 +64,12 @@ def register():
     print('Registered VSE Compositor addon')
     register_classes()
     bpy.types.Scene.eswc_info = bpy.props.PointerProperty(type=ESWC_Info)
-    bpy.app.handlers.render_init.append(render_init)
+    register_handlers()
     
     ### Props for identification of scenes belonging to strips
     # strip composite scene name; used to interchange movies and composites
+    
+    # todo: rename the properties to start with eswc.
     bpy.types.ImageSequence.composite_scene = bpy.props.StringProperty(
         name="Composite Scene",
         description="The name of the composite scene associated to the strip",
@@ -88,12 +90,11 @@ def register():
 
 def unregister():
     unregister_classes()
+    unregister_handlers()
     del bpy.types.Scene.eswc_info
     del bpy.types.MovieClipSequence.composite_scene
     del bpy.types.MovieSequence.composite_scene
     del bpy.types.ImageSequence.composite_scene
-
-    bpy.app.handlers.render_init.remove(render_init)
 
 if __name__ == "__main__":
     register()

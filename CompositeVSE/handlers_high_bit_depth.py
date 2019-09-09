@@ -8,8 +8,13 @@ import bpy
 import subprocess
 
 
-def render_post(scene):
+def render_post_compositor(scene):
     if scene.use_nodes:
+        #name_master_scene = scene.eswc_info.master_scene
+        #if name_master_scene:
+            #if bpy.data.scenes[name_master_scene].eswc_info.bool_use_high_bit_depth_fix:
+                #insert_inputs_for_framegrabs(scene)
+                
         insert_inputs_for_framegrabs(scene)
 
         # delete the temp folder with framegrabs
@@ -52,7 +57,8 @@ def apply_function_compositing_scene(scene, function):
                 function(sequence.scene)
 
 def render_pre_sequencer(scene):
-    apply_function_compositing_scene(scene, render_pre)
+    if scene.eswc_info.bool_use_high_bit_depth_fix:
+        apply_function_compositing_scene(scene, render_pre)
 
 
 def insert_framegrabs_for_inputs(scene):
@@ -183,18 +189,14 @@ def render_init():
     print('Initializing high bit depth fix')
     if bpy.context.scene.eswc_info.bool_use_high_bit_depth_fix:
         print('Initializing high bit depth fix')
-        bpy.app.handlers.render_pre.append(render_pre_sequencer)
-        bpy.app.handlers.render_post.append(render_post)
-        bpy.app.handlers.render_cancel.append(render_post)
 
-        bpy.app.handlers.render_complete.append(render_end)
-        bpy.app.handlers.render_cancel.append(render_end)
+def register_handlers():
+    bpy.app.handlers.render_pre.append(render_pre_sequencer)
+    bpy.app.handlers.render_post.append(render_post_compositor)
+    bpy.app.handlers.render_cancel.append(render_post_compositor)
         
-def render_end():
+def unregister_handlers():
     bpy.app.handlers.render_pre.remove(render_pre_sequencer)
-    bpy.app.handlers.render_post.remove(render_post)
-    bpy.app.handlers.render_cancel.remove(render_post)
-
-    bpy.app.handlers.render_complete.remove(render_end)
-    bpy.app.handlers.render_cancel.remove(render_end)
+    bpy.app.handlers.render_post.remove(render_post_compositor)
+    bpy.app.handlers.render_cancel.remove(render_post_compositor)
 
