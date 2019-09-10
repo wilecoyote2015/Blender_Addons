@@ -8,6 +8,8 @@ import bpy
 import subprocess
 from bpy.app.handlers import persistent
 
+# todo: delete frames post render
+
 @persistent
 def render_pre_sequencer(scene):
     if scene.eswc_info.bool_use_high_bit_depth_fix:
@@ -174,6 +176,8 @@ def render_framegrab(filepath, frame, filename):
         '-i',
         filepath,
         '-y',
+        '-pix_fmt',
+        'rgb48',
         '-frames:v',
         '1',
         path_output
