@@ -74,13 +74,59 @@ def toggle_composition_visibility(self, context):
     for strip in strips:
         # if show compositions, replace the movie and image strips with their compositions
         if bpy.context.scene.eswc_info.bool_show_compositions:
-            if strip.type in ['MOVIE', 'IMAGE']:
-                if strip.composite_scene != "":
-                    composite_scene = bpy.data.scenes[strip.composite_scene]
-                    insert_scene_timeline(composite_scene, strip, bpy.context)
+            if strip.type in ['MOVIE', 'IMAGE'] and strip.composite_scene != "":
+                # store the proxy settings
+                dict_proxies = store_proxy_settings(strip)
+
+                composite_scene = bpy.data.scenes[strip.composite_scene]
+                new_strip = insert_scene_timeline(composite_scene, strip, bpy.context)
+            else:
+                continue
         # if not show compositions, the compositions are to be replaced by the movie strips
         elif strip.type == 'SCENE' and strip.scene.eswc_info.path_input != "":
+            # store the proxy settings
+            dict_proxies = store_proxy_settings(strip)
+
             new_strip = create_strip_for_composition(strip)
+        else:
+            continue
+
+        # set proxy settings
+        # todo: might be better to store proxy settings for original strip and composition separately.
+        if dict_proxies is not None:
+            new_strip.use_proxy = True
+            for setting, value in dict_proxies.items():
+                setattr(new_strip.proxy, setting, value)
+        else:
+            new_strip.use_proxy = False
+
+def store_proxy_settings(strip):
+    
+    if strip.proxy is None:
+        return None
+    
+    settings = [
+        'build_100',
+        'build_50',
+        'build_25',
+        'build_75',
+        'build_free_run',
+        'build_free_run_rec_date',
+        'build_record_run',
+        'directory',
+        'filepath',
+        'quality',
+        'timecode',
+        'use_overwrite',
+        'use_proxy_custom_directory',
+        'use_proxy_custom_file'
+    ]
+    
+    result = {}
+    for setting in settings:
+        result[setting] = getattr(strip.proxy, setting)
+
+    return result
 
 def copy_all_settings(scene_a, scene_b):
     '''
@@ -148,6 +194,7 @@ def insert_scene_timeline(new_scene, original_strip, context):
     # Add newly created scene to the timeline
     # if view comps mode, replace the movie strip with the scene strip.
     # else, assign the composition name to the movie strip
+    # todo: add directly to sequencer instead of using operator
     bpy.ops.sequencer.scene_strip_add(
         frame_start=original_strip.frame_start,
         replace_sel=True, scene=new_scene.name)
@@ -159,6 +206,8 @@ def insert_scene_timeline(new_scene, original_strip, context):
     composite_strip = context.scene.sequence_editor.active_strip
 
     replace_strip(original_strip, composite_strip, context)
+    
+    return composite_strip
     
 def replace_strip(strip_to_replace, strip_replacement, context):
     """
