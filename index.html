@@ -55,13 +55,15 @@
 This addon tries to unleash Blender's great grading capabilities by offering a way to grade sequencer clips in the nodal compositor.
 The initial Addon had been written by TMW in the Blender Artists community and for some time, Carlos Padial and I are trying to further improve the script. You can follow the Development <a href="https://blenderartists.org/forum/showthread.php?221567-Edit-strip-with-compositor">here</a>.</p>
 <p><b>Usage:</b> The addon's interface provides two menus: The first one is located in the Sequencer's panel and provides Buttons to create compositor strips, which are newly created scenes with a prebuilt node setup, from existing video or image strips in the timeline and to jump to the compositor in order to edit the created compositions. The second menu is located in the node compositor panel. It provides buttons to return to the video editing view and to open a compositor strip from the sequencer timeline. 
-After a klick on the "Set Masterscene" button in the addon's menu in the sequencer panel, which sets the current scene as the scene where the video timeline of your project is located, the main controls appear. It is recommended to give "Show Options" a tick and set the compositing and editing screens to the screen layouts you prefer for video editing and compositing. All options provide tooltips on mouse hover explaining their purpose.
 The Addon is designed for two different workflows:
 
 <ul>
 <li>Single monitor setup: After using the "Create Comp from Strip" button to create composite strips of all selected videos, select the composite strip you want to edit and press the "Edit Composition" button to jump to the compositor and after editing the composition, use the "Get Back" button to return to the sequencer view.</li>
 <li>Dual monitor setup: Use window -> duplicate window in Blender's top panel to create a new Blender window. Use one window on the first monitor to display the sequencer view and use the other one to display the compositing view. After using the "Create Comp from Strip" button to create composite strips of all selected videos, select the composite strip you want to edit in the sequencer view and then use the "Edit Composite" button in the node editor panel in the compositor view to open the selected composite strip.</li>
 </ul>
+
+There is a checkbox to activate a high-bit-depth fix in the sequencer panel. If it is activated, prior to rendering each frame, the video input nodes in the compositions will be replaced by a framegrab rendered by ffmpeg.
+This way, blender uses the video's full color information. Without the workaround, blender will only decode the video with 8 bit, implying severe loss of color information especially when working with 10-bit log footage.
 
 It is recommended to disable the OpenGL preview in the sequence viewer so that live preview for composite scripts is provided in the sequencer.
 </p>
@@ -76,8 +78,8 @@ It is recommended to disable the OpenGL preview in the sequence viewer so that l
     If the Metastrip option is activated, the strips will be inserted into the master scene as Metastrip, so that Audio and Video is combined to on strip, which makes editing a bit easier and reduces timeline mess.</p>
         <p>The Unmeta Operator works like the UnMeta Strip function of Blender, but it applies the length of the Meta strip to the Strips that are created. So, if you have trimmed or cut a Metastrip containing an audio and video strip, using Unmeta will separate the metastrip into the audio and video strips with the trimmed length.</p>
     <p> You can select your favorite screen layouts to switch to for range and timeline editing by inserting the layout's name into the appropriate fields.</p>
-        <p>You can create proxies of the selected resolutions of all clips in the folder shown in a file browser area by using the Create Proxie operator.</p>
-        <p>In order to make sorting of clips easier, tick the Good checkbox when in a range editing scene. After having viewed and pretrimmed all clips for your project, use the hide operator to hide all files in the file browser which are not marked as good.</p>
+        <p>You can create proxies of the selected resolutions of all clips in the folder shown in a file browser area by using the Create Proxie operator. This way, you don't have to add all movies to the sequencer in order to create proxies. You can create proxies for all files in your folder at once. <b>Please Note: Blender will freeze until all proxies have been created! This is normal.</b></p>
+        <!--<p>In order to make sorting of clips easier, tick the Good checkbox when in a range editing scene. After having viewed and pretrimmed all clips for your project, use the hide operator to hide all files in the file browser which are not marked as good.</p> -->
 <h2>
 <a id="trimtools" class="anchor" href="#trimtools" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TrimTools</h2>
 
@@ -89,6 +91,8 @@ You can also select a video strip and it's according audio strip simultaneously 
 
 <h1>
 <a id="highpass" class="anchor" href="#highpass" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Highpass</h1>
+	  
+	  <i>Please Note: The addon is not compatible with Blender 2.80 (yet).</i>
 
 <p>Blender has got a great tracking tool, which can also be used to compensate unwanted camera movements. A common use case is represented by the intention to make a shaky handheld video look stable.
 Though if you try to deshake a video you will encounter the Problem that the algorithm compensates all camera movement. This is fine if you are going to stabilize a steady shot like it is shown in the tutorial above, but in most cases there is some intended movement like a camera pan that should be preserved while annoying jittering needs to be removed.</p>
@@ -108,6 +112,8 @@ You can also repeat the procedure for a second track point and use it for rotati
 
 <h1>
 <a id="natronizer" class="anchor" href="#natronizer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Natronizer</h1>
+	  
+	  <i>Please Note: The addon is not compatible with Blender 2.80 (yet).</i>
 
 <p>Because it is my favorite application for editing Videos, but the internal (quite powerful) Node compositor is too slow for Visual Effects Work and complex color grading, I have decided to use Natron for that and thus try to integrate it into the Blender editing workflow.</p>
 
