@@ -16,6 +16,8 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# todo: overtake proxy settings from the strip instead of using user configured ones.
+
 import bpy
 from CompositeVSE import common_functions
 import os
