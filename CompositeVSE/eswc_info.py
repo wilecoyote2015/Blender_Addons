@@ -59,7 +59,7 @@ class ESWC_Info(bpy.types.PropertyGroup):
 
     bool_use_high_bit_depth_fix = BoolProperty(
         name="Use High Bitdepth Fix",
-        description="Workaround for 10 Bit videos in compositor",
+        description="Workaround for 10 Bit videos in compositor while rendering",
         default=True)
 
     bool_add_group = BoolProperty(
