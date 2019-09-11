@@ -51,10 +51,6 @@ class CompPanel(bpy.types.Panel):
             col.prop(eswc_info, "bool_add_scale")
             col.prop(eswc_info, "bool_use_high_bit_depth_fix")
 
-            col.prop(eswc_info, "bool_auto_proxy")
-            if eswc_info.bool_auto_proxy:
-                col.prop(eswc_info, "pq")
-
             if len(bpy.data.node_groups) != 0:
                 col.prop(eswc_info, "bool_add_group")
                 if eswc_info.bool_add_group:

@@ -16,8 +16,6 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-# todo: overtake proxy settings from the strip instead of using user configured ones.
-
 import bpy
 from CompositeVSE import common_functions
 import os
@@ -258,7 +256,7 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
                 # insert the strip into the scene in place of the original if composite strips are to be shown.
                 # else, set the name of the scene
                 if eswc_info.bool_show_compositions:
-                    common_functions.insert_scene_timeline(new_scene=comp_scene, 
+                    strip_composite = common_functions.insert_scene_timeline(new_scene=comp_scene,
                                                            original_strip=strip, 
                                                            context=context)
                 else:

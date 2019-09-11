@@ -51,6 +51,8 @@ def create_strip_for_composition(strip_composition):
         # also, the check if a scene already corresponds to an image strip then also has to compare
         # this list of files because if other files are used, it is not the same source albeit
         # it referes to the same directory.
+
+        # todo: do not use operator
         bpy.ops.sequencer.image_strip_add(directory=path_input, replace_sel=True)
         # bpy.context.scene.update()
         new_strip = bpy.context.scene.sequence_editor.active_strip
@@ -75,30 +77,27 @@ def toggle_composition_visibility(self, context):
         # if show compositions, replace the movie and image strips with their compositions
         if bpy.context.scene.eswc_info.bool_show_compositions:
             if strip.type in ['MOVIE', 'IMAGE'] and strip.composite_scene != "":
-                # store the proxy settings
-                dict_proxies = store_proxy_settings(strip)
-
                 composite_scene = bpy.data.scenes[strip.composite_scene]
                 new_strip = insert_scene_timeline(composite_scene, strip, bpy.context)
             else:
                 continue
         # if not show compositions, the compositions are to be replaced by the movie strips
         elif strip.type == 'SCENE' and strip.scene.eswc_info.path_input != "":
-            # store the proxy settings
-            dict_proxies = store_proxy_settings(strip)
-
             new_strip = create_strip_for_composition(strip)
         else:
             continue
 
         # set proxy settings
         # todo: might be better to store proxy settings for original strip and composition separately.
-        if dict_proxies is not None:
-            new_strip.use_proxy = True
-            for setting, value in dict_proxies.items():
-                setattr(new_strip.proxy, setting, value)
-        else:
-            new_strip.use_proxy = False
+
+
+def apply_proxy_settings_to_strip(strip, dict_settings):
+    if dict_settings is not None:
+        strip.use_proxy = True
+        for setting, value in dict_settings.items():
+            setattr(strip.proxy, setting, value)
+    else:
+        strip.use_proxy = False
 
 def store_proxy_settings(strip):
     
@@ -230,9 +229,9 @@ def replace_strip(strip_to_replace, strip_replacement, context):
     if eswc_info.settings == "All":
         copy_all_settings(strip_replacement, strip_to_replace)
 
-    if eswc_info.bool_auto_proxy:
-        a = strip_replacement
-        setup_proxy(a, eswc_info, strip_replacement.name)
+    # copy proxy settings
+    dict_proxy_settings = store_proxy_settings(strip_to_replace)
+    apply_proxy_settings_to_strip(strip_replacement, dict_proxy_settings)
 
     # if any strips use the strip to replace as input, set input to new strip
     for sequence in context.scene.sequence_editor.sequences_all:
@@ -258,33 +257,7 @@ def replace_strip(strip_to_replace, strip_replacement, context):
     strip_replacement.frame_start = frame_start
 
     strip_replacement.channel = channel
-    
-def setup_proxy(strip, eswc_info, new_name):
-    strip.use_proxy = True
-    if (eswc_info.pq == "1"):
-        strip.proxy.build_25 = True
-    else:
-        strip.proxy.build_25 = False
-    if (eswc_info.pq == "2"):
-        strip.proxy.build_50 = True
-    else:
-        strip.proxy.build_50 = False
-    if (eswc_info.pq == "3"):
-        strip.proxy.build_75 = True
-    else:
-        strip.proxy.build_75 = False
-    if (eswc_info.pq == "4"):
-        strip.proxy.build_100 = True
-    else:
-        strip.proxy.build_100 = False
-    strip.use_proxy_custom_directory = True
-    name = new_name
-    proxy_folder = bpy.path.abspath("//.proxy")
-    new_folder = os.path.join(proxy_folder, name)
-    rel_folder = bpy.path.relpath(new_folder)
-    strip.proxy.directory = rel_folder
-    strip.proxy.quality = 90
-    
+
 def find_matching_compositions(strip):
     result = []
     for scene in bpy.data.scenes:
