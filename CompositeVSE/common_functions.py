@@ -22,44 +22,44 @@ import os
 def switch_screen(context, eswc_screen):
     bpy.context.window.workspace = bpy.data.workspaces[eswc_screen]
 
-# def select_only_strip(strip):
-#     # deselect all strips and select only the composite strip
-#     # todo: more elegant way to do this?
-#     bpy.ops.sequencer.select_all(action='SELECT')
-#     for i in bpy.context.selected_editable_sequences:
-#         if i.name != strip.name:
-#             i.select = False
-#     bpy.context.scene.sequence_editor.active_strip = strip
-#     # bpy.context.scene.update()
+def select_only_strip(strip):
+    # deselect all strips and select only the composite strip
+    # todo: more elegant way to do this?
+    bpy.ops.sequencer.select_all(action='SELECT')
+    for i in bpy.context.selected_editable_sequences:
+        if i.name != strip.name:
+            i.select = False
+    bpy.context.scene.sequence_editor.active_strip = strip
+    # bpy.context.scene.update()
 
 
-def create_strip_for_composition(strip_composition, scene):
+def create_strip_for_composition(strip_composition):
     eswc_info_composite = strip_composition.scene.eswc_info
     path_input = eswc_info_composite.path_input
 
+    # deselect all other strips
+    bpy.ops.sequencer.select_all(action='DESELECT')
+
     new_strip = None
     if eswc_info_composite.type_original_strip == 'MOVIE':
-        # todo: do not use operator but create strip directly
-        # bpy.ops.sequencer.movie_strip_add(filepath=path_input, replace_sel=True, sound=False)
-        new_strip = scene.sequence_editor.sequences.new_movie('NewStripVSECOMP',
-                                                  frame_start=0,
-                                                  filepath=bpy.path.abspath(path_input),
-                                                  channel=0)
+        bpy.ops.sequencer.movie_strip_add(filepath=path_input, replace_sel=True, sound=False)
+        # bpy.context.scene.update()
+        new_strip = bpy.context.scene.sequence_editor.active_strip
     elif eswc_info_composite.type_original_strip == 'IMAGE':
         # todo: respect files. For this, a new string prop collection holding all files
         # of the source image strip must be added to composition scene.
         # also, the check if a scene already corresponds to an image strip then also has to compare
         # this list of files because if other files are used, it is not the same source albeit
         # it referes to the same directory.
-        new_strip = scene.sequence_editor.sequences.new_image('NewStripVSECOMP',
-                                                  frame_start=0,
-                                                  filepath=bpy.path.abspath(path_input),
-                                                  channel=0)
+
+        # todo: do not use operator
+        bpy.ops.sequencer.image_strip_add(directory=path_input, replace_sel=True)
+        # bpy.context.scene.update()
+        new_strip = bpy.context.scene.sequence_editor.active_strip
 
     if new_strip is not None:
         new_strip.composite_scene = strip_composition.scene.name
-        print(new_strip)
-        print(strip_composition)
+
         replace_strip(strip_composition, new_strip, bpy.context)
     else:
         print({'ERROR_INVALID_INPUT'}, 'The following composite strip refers to an invalid strip type:'
@@ -83,7 +83,7 @@ def toggle_composition_visibility(self, context):
                 continue
         # if not show compositions, the compositions are to be replaced by the movie strips
         elif strip.type == 'SCENE' and strip.scene.eswc_info.path_input != "":
-            new_strip = create_strip_for_composition(strip, context.scene)
+            new_strip = create_strip_for_composition(strip)
         else:
             continue
 
@@ -164,8 +164,7 @@ def copy_all_settings(scene_a, scene_b):
     for setting in settings_multiple:
         attr_scene_b = getattr(scene_b, setting[0])
         attr_scene_a = getattr(scene_a, setting[0])
-
-        if attr_scene_b is not None and attr_scene_a is not None:
+        if attr_scene_b is not None:
             setattr(attr_scene_a, setting[1], getattr(attr_scene_b, setting[1]))
     # # scene_a.use_translation =  scene_b.use_translation
     # # scene_a.use_reverse_frames = scene_b.use_reverse_frames
@@ -188,20 +187,25 @@ def copy_all_settings(scene_a, scene_b):
 def insert_scene_timeline(new_scene, original_strip, context):
 
     # deselect all other strips
+    bpy.ops.sequencer.select_all(action='DESELECT')
     context.scene.sequence_editor.active_strip = None
 
     # Add newly created scene to the timeline
     # if view comps mode, replace the movie strip with the scene strip.
     # else, assign the composition name to the movie strip
     # todo: add directly to sequencer instead of using operator
-    composite_strip = context.scene.sequence_editor.sequences.new_scene(
-        name='NewStripVSECOMP',
+    bpy.ops.sequencer.scene_strip_add(
         frame_start=original_strip.frame_start,
-        channel=0,
-        scene=new_scene)
+        replace_sel=True, scene=new_scene.name)
+
+    # context.scene.update()
+
+    # make composite strip  active
+    # todo: is this really the correct way to get the newly created strip?
+    composite_strip = context.scene.sequence_editor.active_strip
 
     replace_strip(original_strip, composite_strip, context)
-
+    
     return composite_strip
     
 def replace_strip(strip_to_replace, strip_replacement, context):
@@ -242,8 +246,8 @@ def replace_strip(strip_to_replace, strip_replacement, context):
     offset_end = strip_to_replace.frame_offset_end
 
     # delete the strip
-    # select_only_strip(strip_to_replace)
-    context.scene.sequence_editor.sequences.remove(strip_to_replace)
+    select_only_strip(strip_to_replace)
+    bpy.ops.sequencer.delete()
 
     # set the correct channel and name
     strip_replacement.name = name_strip
