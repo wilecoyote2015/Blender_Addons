@@ -2187,7 +2187,6 @@ keyconfig_data = \
      ),
     ("marker.add", {"type": 'M', "value": 'PRESS'}, None),
     ("marker.rename", {"type": 'M', "value": 'PRESS', "ctrl": True}, None),
-    ("moviemanager_switch_back_to_timeline", {"type": 'R', "value": 'PRESS'}, None),
     ("moviemanager_insert_strip_masterscene", {"type": 'I', "value": 'PRESS'}, None),
     ("trimtools_trim_left", {"type": 'Q', "value": 'PRESS', "shift": True}, None),
     ("trimtools_trim_right", {"type": 'W', "value": 'PRESS', "shift": True}, None),
