@@ -68,25 +68,22 @@ class PanelMovieManager(bpy.types.Panel):
 
         row = layout.row()
         col = row.column()
-        if scn.timeline:
-            col.operator( "sequencer.moviemanager_insert_strip" )
-
-            row = layout.row()
-            col = row.column()
-            col.operator( "sequencer.moviemanager_clean" )
-
 
         if not scn.timeline:
             col.operator( "sequencer.moviemanager_insert_strip_masterscene" )
 
-        row = layout.row()
-        col = row.column()
-        col.operator( "sequencer.moviemanager_unmeta" )
+
         # row.operator( "moviemanager.meta" )
 
         if not scn.timeline:
             row = layout.row()
             row.operator( "sequencer.moviemanager_set_timeline" )
+
+        if bpy.context.scene.sequence_editor.active_strip.type == 'META':
+            row = layout.row()
+            col = row.column()
+            col.operator("sequencer.moviemanager_unmeta")
+
 
         row = layout.row()
 
@@ -111,12 +108,10 @@ class PanelMovieManager(bpy.types.Panel):
                 col.prop(scn, "enum_edit_screen")
 
                 row = layout.row()
-                col = row.column()
+                row.prop(scn, "meta")
+
                 # row.prop( scn, "custom_screen" )
                 # col.prop( scn, "zoom" )
-
-                row = layout.row()
-                row.prop( scn, "meta" )
 
 class PanelTrimTools(bpy.types.Panel):
     bl_space_type = "SEQUENCE_EDITOR"

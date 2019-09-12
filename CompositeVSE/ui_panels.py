@@ -37,7 +37,7 @@ class CompPanel(bpy.types.Panel):
         if activestrip is not None:
             if activestrip.type == "SCENE":
                 layout.operator("sequencer.eswc_switch_to_composite")
-            if activestrip.type in {"MOVIE", "IMAGE"}:
+            if activestrip.type in {"MOVIE", "IMAGE"} and activestrip.composite_scene == "":
                 layout.operator("sequencer.eswc_single_comp")
 
         layout.prop(eswc_info, "bool_show_options")
