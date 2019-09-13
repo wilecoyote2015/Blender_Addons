@@ -65,7 +65,7 @@ class OperatorSelectCurrent (bpy.types.Operator):
                         return None
                     movie, sound = sequence_candidate, sequence
                 
-        return movie, sound if movie and sound else None
+        return (movie, sound) if movie is not None and sound is not None else None
 
 
     def invoke (self, context, event):
@@ -93,8 +93,6 @@ class OperatorSelectCurrent (bpy.types.Operator):
         bpy.ops.sequencer.select_all(action='DESELECT')
         
         if index_strip_select is not None and strips_current_frame_sorted:
-            print(index_strip_select)
-            print(strips_current_frame_sorted)
             strip_to_select = strips_current_frame_sorted[index_strip_select]
             strip_to_select.select = True
             
