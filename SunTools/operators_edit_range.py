@@ -45,7 +45,7 @@ class OperatorEditRange(bpy.types.Operator):
 
         strip_type = detect_strip_type(filename)
         if (strip_type in ['MOVIE', 'SOUND']):
-            path_source = os.path.join(params_selected_file.directory, filename)
+            path_source = os.path.join(params_selected_file.directory.decode(), filename)
             path_source = bpy.path.relpath(path_source)
             self.enter_edit_range_scene(context, masterscene, path_source, strip_type)
         else:
@@ -169,6 +169,8 @@ class OperatorEditRange(bpy.types.Operator):
                                                                   channel=0)
         else:
             raise ValueError('Strip type {} not supported'.format(strip_type))
+        
+        strip_new.use_proxy = True
 
         scene.frame_end = strip_new.frame_duration
         return strip_new
@@ -219,6 +221,10 @@ class OperatorInsertStripIntoMasterscene(bpy.types.Operator):
             return {'CANCELLED'}
 
         strip_to_insert = bpy.context.scene.sequence_editor.active_strip
+        
+        if strip_to_insert is None:
+            return
+        
         if (strip_to_insert.type == 'MOVIE' or 'SOUND'):
             range_scene_name = bpy.context.scene.name
             bpy.context.window.scene = masterscene
@@ -226,9 +232,14 @@ class OperatorInsertStripIntoMasterscene(bpy.types.Operator):
             frame_start, frame_final_start, frame_final_end, channel = \
                 self.get_destination_start_end_frames_and_channel(range_scene_name, strip_to_insert, masterscene)
             if (strip_to_insert.type == 'MOVIE'):
-                bpy.ops.sequencer.movie_strip_add(frame_start=frame_start, channel=channel, overlap=False, filepath=strip_to_insert.filepath)
+                strip_new = bpy.ops.sequencer.movie_strip_add(frame_start=frame_start, channel=channel, overlap=False, filepath=strip_to_insert.filepath)
             elif (strip_to_insert.type == 'SOUND'):
-                bpy.ops.sequencer.sound_strip_add(frame_start=frame_start, channel=channel, overlap=False, filepath=strip_to_insert.sound.filepath)
+                strip_new = bpy.ops.sequencer.sound_strip_add(frame_start=frame_start, channel=channel, overlap=False, filepath=strip_to_insert.sound.filepath)
+            else:
+                return
+
+            strip_new.use_proxy = True
+
             self.apply_in_and_out_points(masterscene, strip_to_insert, frame_final_start, frame_final_end, channel)
 
             # change visible scene back
