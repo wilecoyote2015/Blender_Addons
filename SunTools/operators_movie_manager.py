@@ -136,7 +136,7 @@ class OperatorCreateProxies(bpy.types.Operator):
             filepaths = []
             for root, dirs, files in os.walk(directory):
                 # only add files if they are not in a proxy directory
-                if 'BL_proxy' not in root:
+                if os.path.dirname(root) != 'BL_proxy':
                     filepaths.extend([os.path.join(root, f) for f in files])
         else:
             filepaths = [ os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory,f)) ]
@@ -184,7 +184,7 @@ class OperatorCreateProxies(bpy.types.Operator):
     def create_strips_and_set_proxy_settings(self, masterscene, filepaths):
         strips_created = False
         for path in filepaths:
-            filename = os.path.basename(path)
+            filename = os.path.basename(path).decode()
             strip_type = detect_strip_type(filename)
 
             if (strip_type == 'MOVIE'):
