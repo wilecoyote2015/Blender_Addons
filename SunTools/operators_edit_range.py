@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from SunTools.common_functions import get_masterscene, detect_strip_type, switch_workspace
+from SunTools.common_functions import get_masterscene, detect_strip_type, switch_workspace, insert_clip
 import bpy
 import json
 import os
@@ -150,31 +150,22 @@ class OperatorEditRange(bpy.types.Operator):
 
     def insert_clip_ranges(self, scene, ranges, path_source, strip_type):
         for index, range in enumerate(ranges):
-            strip_new = self.insert_clip(scene, path_source, strip_type, range['name'])
-                
-            strip_new.frame_final_start = range['frame_final_start']
-            strip_new.frame_final_end = range['frame_final_end']
-            strip_new.channel = 0
+            strips_new = self.insert_clip(scene, path_source, strip_type, range['name'])
+            
+            for strip_new in strips_new:
+                strip_new.frame_final_start = range['frame_final_start']
+                strip_new.frame_final_end = range['frame_final_end']
+                strip_new.channel = 0
         
     def insert_clip(self, scene, path_source, strip_type, name):
-        path_source_abs = bpy.path.abspath(path_source)
-        if (strip_type == 'MOVIE'):
-            strip_new = scene.sequence_editor.sequences.new_movie(name,
-                                                                  frame_start=0,
-                                                                  filepath=path_source_abs,
-                                                                  channel=0)
-        elif (strip_type == 'SOUND'):
-            strip_new = scene.sequence_editor.sequences.new_sound(name,
-                                                                  frame_start=0,
-                                                                  filepath=path_source_abs,
-                                                                  channel=0)
-        else:
-            raise ValueError('Strip type {} not supported'.format(strip_type))
-        
-        strip_new.use_proxy = True
+        strips_new = insert_clip(scene, path_source, strip_type, name, 0, 1)
 
-        scene.frame_end = strip_new.frame_duration
-        return strip_new
+        if strips_new is None:
+            raise ValueError('Strip type {} not supported'.format(strip_type))
+
+        scene.frame_end = strips_new[0].frame_duration
+
+        return strips_new
 
     def create_new_scene_with_settings_from_masterscene(self, masterscene, scene_name, source_path):
         new_scene = bpy.data.scenes.new(scene_name)
@@ -234,16 +225,37 @@ class OperatorInsertStripIntoMasterscene(bpy.types.Operator):
 
             frame_start, frame_final_start, frame_final_end, channel = \
                 self.get_destination_start_end_frames_and_channel(range_scene_name, strip_to_insert, masterscene)
-            if (strip_to_insert.type == 'MOVIE'):
-                strip_new = bpy.ops.sequencer.movie_strip_add(frame_start=frame_start, channel=channel, overlap=False, filepath=strip_to_insert.filepath)
-            elif (strip_to_insert.type == 'SOUND'):
-                strip_new = bpy.ops.sequencer.sound_strip_add(frame_start=frame_start, channel=channel, overlap=False, filepath=strip_to_insert.sound.filepath)
-            else:
+            
+            strips_new = insert_clip(
+                masterscene,
+                strip_to_insert.filepath,
+                strip_to_insert.type,
+                strip_to_insert.name,
+                frame_start,
+                channel
+            )
+            
+            if strips_new is None:
                 return
+            
+            # if (strip_to_insert.type == 'MOVIE'):
+            #     strip_new = bpy.ops.sequencer.new_movie(
+            #         frame_start=frame_start,
+            #         channel=channel,
+            #         overlap=False,
+            #         filepath=strip_to_insert.filepath
+            #     )
+            # elif (strip_to_insert.type == 'SOUND'):
+            #     strip_new = bpy.ops.sequencer.new_sound(
+            #         frame_start=frame_start,
+            #         channel=channel,
+            #         overlap=False,
+            #         filepath=strip_to_insert.sound.filepath
+            #     )
+            # else:
+            #     return
 
-            strip_new.use_proxy = True
-
-            self.apply_in_and_out_points(masterscene, strip_to_insert, frame_final_start, frame_final_end, channel)
+            self.apply_in_and_out_points(masterscene, strip_to_insert, frame_final_start, frame_final_end, strips_new)
 
             # change visible scene back
             bpy.context.window.scene = bpy.data.scenes[range_scene_name]
@@ -278,12 +290,12 @@ class OperatorInsertStripIntoMasterscene(bpy.types.Operator):
 
         return frame_start, frame_final_start, frame_final_end, channel
 
-    def apply_in_and_out_points(self, masterscene, strip_to_insert, frame_final_start, frame_final_end, channel):
+    def apply_in_and_out_points(self, masterscene, strip_to_insert, frame_final_start, frame_final_end, strips):
         # Apply in and out points
         if (strip_to_insert.type == 'MOVIE' and masterscene.suntools_info.meta == True):
             bpy.ops.sequencer.meta_make()
-        for selected_sequence in bpy.context.selected_sequences:
-            channel = selected_sequence.channel
-            selected_sequence.frame_final_start = frame_final_start
-            selected_sequence.frame_final_end = frame_final_end
-            selected_sequence.channel = channel
+        for strip in strips:
+            channel = strip.channel
+            strip.frame_final_start = frame_final_start
+            strip.frame_final_end = frame_final_end
+            strip.channel = channel
