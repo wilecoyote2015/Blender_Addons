@@ -138,12 +138,13 @@ class OperatorEditRange(bpy.types.Operator):
     def get_ranges_in_scene(self, scene):
         ranges = []
         for sequence in scene.sequence_editor.sequences:
-            ranges_sequence = {
-                'name': sequence.name,
-                'frame_final_start': sequence.frame_final_start,
-                'frame_final_end': sequence.frame_final_end
-            }
-            ranges.append(ranges_sequence)
+            if sequence.type == scene.suntools_info.type_strip_range:
+                ranges_sequence = {
+                    'name': sequence.name,
+                    'frame_final_start': sequence.frame_final_start,
+                    'frame_final_end': sequence.frame_final_end
+                }
+                ranges.append(ranges_sequence)
             
         return ranges
 
@@ -179,6 +180,8 @@ class OperatorEditRange(bpy.types.Operator):
         new_scene = bpy.data.scenes.new(scene_name)
         new_scene.sequence_editor_create()
         new_scene.suntools_info.source_path = source_path
+
+        new_scene.suntools_info.type_strip_range = detect_strip_type(source_path)
 
         new_scene.render.resolution_x = masterscene.render.resolution_x
         new_scene.render.resolution_y = masterscene.render.resolution_y

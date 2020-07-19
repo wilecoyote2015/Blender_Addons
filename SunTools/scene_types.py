@@ -102,6 +102,9 @@ class SunToolsInfo(bpy.types.PropertyGroup):
     #Define the Path of the File the Scene belongs to.
     source_path = StringProperty(name="Source Path", description="The Path of the File the Scene belongs to.", default="none" )
 
+    # define strip type of a range scene so that only ranges of relevant strips are obtained
+    type_strip_range = StringProperty(name="Range Strip Type", description="Type of a range scene's strip.", default="none" )
+
     ### TrimTools Section
     select_audio = BoolProperty( name="Select Audio",
                                          description = "Select appropriate audio strips, too? ",
