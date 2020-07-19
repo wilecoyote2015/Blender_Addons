@@ -153,9 +153,10 @@ class OperatorEditRange(bpy.types.Operator):
             strips_new = self.insert_clip(scene, path_source, strip_type, range['name'])
             
             for strip_new in strips_new:
+                channel = strip_new.channel
                 strip_new.frame_final_start = range['frame_final_start']
                 strip_new.frame_final_end = range['frame_final_end']
-                strip_new.channel = 0
+                strip_new.channel = channel
         
     def insert_clip(self, scene, path_source, strip_type, name):
         strips_new = insert_clip(scene, path_source, strip_type, name, 0, 1)
