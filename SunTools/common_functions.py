@@ -120,3 +120,44 @@ def detect_strip_type(filepath):
 def switch_workspace(screen_selection):
 
     bpy.context.window.workspace = bpy.data.workspaces[screen_selection]
+
+def insert_clip(scene, path_source, strip_type, name, frame_start, channel):
+    path_source_abs = bpy.path.abspath(path_source)
+    strips_new = []
+    if (strip_type == 'MOVIE'):
+        strips_new.append(
+            scene.sequence_editor.sequences.new_movie(
+                name,
+                frame_start=frame_start,
+                filepath=path_source_abs,
+                channel=channel
+            )
+        )
+        try:
+            strips_new.append(
+                scene.sequence_editor.sequences.new_sound(
+                    name,
+                    frame_start=frame_start,
+                    filepath=path_source_abs,
+                    channel=channel+1
+                )
+            )
+        except:
+            pass
+
+        strips_new[0].use_proxy = True
+    elif (strip_type == 'SOUND'):
+        strips_new.append(
+            scene.sequence_editor.sequences.new_sound(
+                name,
+                frame_start=frame_start,
+                filepath=path_source_abs,
+                channel=channel
+            )
+        )
+    else:
+        return None
+
+    
+    return strips_new
+
