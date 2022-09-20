@@ -169,17 +169,21 @@ class OperatorEditRange(bpy.types.Operator):
         return strips_new
 
     def create_new_scene_with_settings_from_masterscene(self, masterscene, scene_name, source_path):
-        new_scene = bpy.data.scenes.new(scene_name)
+        bpy.context.window.scene = masterscene
+        bpy.ops.scene.new(type='LINK_COPY')
+        # bpy.context.scene.name = scene_name
+        new_scene = bpy.context.scene
         new_scene.sequence_editor_create()
         new_scene.suntools_info.source_path = source_path
+        new_scene.suntools_info.timeline = False
 
         new_scene.suntools_info.type_strip_range = detect_strip_type(source_path)
 
-        new_scene.render.resolution_x = masterscene.render.resolution_x
-        new_scene.render.resolution_y = masterscene.render.resolution_y
-        new_scene.render.resolution_percentage = masterscene.render.resolution_percentage
-        new_scene.render.fps = masterscene.render.fps
-        new_scene.sync_mode = masterscene.sync_mode
+        # new_scene.render.resolution_x = masterscene.render.resolution_x
+        # new_scene.render.resolution_y = masterscene.render.resolution_y
+        # new_scene.render.resolution_percentage = masterscene.render.resolution_percentage
+        # new_scene.render.fps = masterscene.render.fps
+        # new_scene.sync_mode = masterscene.sync_mode
         new_scene.frame_start = 0
 
         return new_scene
@@ -226,7 +230,7 @@ class OperatorInsertStripIntoMasterscene(bpy.types.Operator):
 
             frame_start, frame_final_start, frame_final_end, channel = \
                 self.get_destination_start_end_frames_and_channel(range_scene_name, strip_to_insert, masterscene)
-            
+            print(frame_start)
             strips_new = insert_clip(
                 masterscene,
                 strip_to_insert.filepath,
@@ -238,23 +242,6 @@ class OperatorInsertStripIntoMasterscene(bpy.types.Operator):
             
             if strips_new is None:
                 return
-            
-            # if (strip_to_insert.type == 'MOVIE'):
-            #     strip_new = bpy.ops.sequencer.new_movie(
-            #         frame_start=frame_start,
-            #         channel=channel,
-            #         overlap=False,
-            #         filepath=strip_to_insert.filepath
-            #     )
-            # elif (strip_to_insert.type == 'SOUND'):
-            #     strip_new = bpy.ops.sequencer.new_sound(
-            #         frame_start=frame_start,
-            #         channel=channel,
-            #         overlap=False,
-            #         filepath=strip_to_insert.sound.filepath
-            #     )
-            # else:
-            #     return
 
             self.apply_in_and_out_points(masterscene, strip_to_insert, frame_final_start, frame_final_end, strips_new)
 

@@ -134,14 +134,17 @@ def copy_all_settings(scene_a, scene_b):
     '''
     
     settings = [
+        # TODO: Update this for all relevant current attributes
+        # TODO: Also include keyframes etc.!
+        #   Is there a convenient way to copy all animation, transform, modifiers etc. between strips (or even better, link them)?
         'blend_type',
         'blend_alpha',
         'use_flip_x',
         'use_flip_y',
-        'use_translation',
-        'use_crop',
+        # 'use_translation',
+        # 'use_crop',
         'strobe',
-        'playback_direction',
+        # 'playback_direction',
         'color_saturation',
         'color_multiply',
         'use_float'
@@ -195,7 +198,7 @@ def insert_scene_timeline(new_scene, original_strip, context):
     # else, assign the composition name to the movie strip
     # todo: add directly to sequencer instead of using operator
     bpy.ops.sequencer.scene_strip_add(
-        frame_start=original_strip.frame_start,
+        frame_start=int(original_strip.frame_start),
         replace_sel=True, scene=new_scene.name)
 
     # context.scene.update()

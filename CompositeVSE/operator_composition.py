@@ -59,7 +59,7 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
         new_scene.render.resolution_percentage = 100
 
         # Setup new scene EndFrame to match original_strip length
-        new_scene.frame_end = original_strip.frame_final_duration + original_strip.frame_offset_start + original_strip.frame_offset_end
+        new_scene.frame_end = int(original_strip.frame_final_duration + original_strip.frame_offset_start + original_strip.frame_offset_end)
 
         # Setup nodes
         new_scene.use_nodes = True
@@ -140,10 +140,10 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
         # length shall be original movie length.
         # todo: is this necessary? Doesn't the strip have the duration by default?
         # todo: why set frame offset?
-        image_node.frame_duration = strip.frame_final_duration + \
+        image_node.frame_duration = int(strip.frame_final_duration + \
                                     strip.frame_offset_start + strip.frame_offset_end + \
-                                    strip.animation_offset_end
-        image_node.frame_offset = strip.animation_offset_start
+                                    strip.animation_offset_end)
+        image_node.frame_offset = int(strip.animation_offset_start)
 
         image_node.use_cyclic = False
         image_node.use_auto_refresh = True

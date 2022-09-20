@@ -33,7 +33,7 @@ class SunToolsInfo(bpy.types.PropertyGroup):
     #                                      description = "Use a custom workspace layout for range editing ",
     #                                      default=False )
 
-    meta = BoolProperty( name="Metastrip",
+    meta: BoolProperty( name="Metastrip",
                                          description = "Combine audio and video into metastrip on insertion into Masterscene",
                                          default=False )
     #
@@ -41,31 +41,31 @@ class SunToolsInfo(bpy.types.PropertyGroup):
     #                                      description = "Zoom to the entire Clip after entering Edit Range",
     #                                      default=False )
 
-    show_options = BoolProperty( name="Show Options",
+    show_options: BoolProperty( name="Show Options",
                                          description = "",
                                          default=False )
 
-    p25 = BoolProperty( name="25%",
+    p25: BoolProperty( name="25%",
                                          description = "Proxy sizes to be created",
                                          default=False )
 
-    p50 = BoolProperty( name="50%",
+    p50: BoolProperty( name="50%",
                                          description = "Proxy sizes to be created",
                                          default=False )
 
-    p75 = BoolProperty( name="75%",
+    p75: BoolProperty( name="75%",
                                          description = "Proxy sizes to be created",
                                          default=False )
 
-    p100 = BoolProperty( name="100%",
+    p100: BoolProperty( name="100%",
                                          description = "Proxy sizes to be created",
                                          default=False )
-    proxy_recursive = BoolProperty(name="Proxy: include subfoders",
+    proxy_recursive: BoolProperty(name="Proxy: include subfoders",
                                          description = 'Generate proxies also for files in subfolders',
                                          default=False )
 
     #Is it the timeline scene?
-    timeline = BoolProperty( name="Timeline",
+    timeline: BoolProperty(name="Timeline",
                                          description = "Is this your actual timeline?",
                                          default=False)
     #
@@ -81,16 +81,16 @@ class SunToolsInfo(bpy.types.PropertyGroup):
         return items
 
 
-    enum_edit_screen = EnumProperty(items=avail_screens,
+    enum_edit_screen: EnumProperty(items=avail_screens,
                                     name="Editing Workspace")
 
-    enum_range_screen = EnumProperty(items=avail_screens,
+    enum_range_screen: EnumProperty(items=avail_screens,
                                     name="Range Editing Workspace")
 
 
 
     #Channel selector
-    channel = IntProperty(
+    channel: IntProperty(
         name="Channel",
         description="Define into which channel the new strip will be inserted ",
         default=1,
@@ -100,12 +100,12 @@ class SunToolsInfo(bpy.types.PropertyGroup):
     )
 
     #Define the Path of the File the Scene belongs to.
-    source_path = StringProperty(name="Source Path", description="The Path of the File the Scene belongs to.", default="none" )
+    source_path: StringProperty(name="Source Path", description="The Path of the File the Scene belongs to.", default="none" )
 
     # define strip type of a range scene so that only ranges of relevant strips are obtained
-    type_strip_range = StringProperty(name="Range Strip Type", description="Type of a range scene's strip.", default="none" )
+    type_strip_range: StringProperty(name="Range Strip Type", description="Type of a range scene's strip.", default="none" )
 
     ### TrimTools Section
-    select_audio = BoolProperty( name="Select Audio",
+    select_audio: BoolProperty( name="Select Audio",
                                          description = "Select appropriate audio strips, too? ",
                                          default=True )

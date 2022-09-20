@@ -27,7 +27,7 @@ class PanelMovieManagerBrowser(bpy.types.Panel):
     def draw(self, context):
         scn = context.scene.suntools_info
         layout = self.layout
-        
+
         if scn.timeline:
             row = layout.row()
             col = row.column()
@@ -55,6 +55,7 @@ class PanelMovieManager(bpy.types.Panel):
         scn = context.scene.suntools_info
         layout = self.layout
 
+        # TODO: Show only if master scene exists
         if not scn.timeline:
             row = layout.row()
             row.operator( "sequencer.moviemanager_switch_back_to_timeline" )
@@ -68,18 +69,13 @@ class PanelMovieManager(bpy.types.Panel):
 
         row = layout.row()
         col = row.column()
-
+        print(scn.timeline)
         if not scn.timeline:
             col.operator( "sequencer.moviemanager_insert_strip_masterscene" )
-
-
-        # row.operator( "moviemanager.meta" )
-
-        if not scn.timeline:
             row = layout.row()
             row.operator( "sequencer.moviemanager_set_timeline" )
 
-        if bpy.context.scene.sequence_editor.active_strip.type == 'META':
+        if bpy.context.scene.sequence_editor.active_strip and bpy.context.scene.sequence_editor.active_strip.type == 'META':
             row = layout.row()
             col = row.column()
             col.operator("sequencer.moviemanager_unmeta")

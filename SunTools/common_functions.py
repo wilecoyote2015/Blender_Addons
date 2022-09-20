@@ -122,6 +122,7 @@ def switch_workspace(screen_selection):
     bpy.context.window.workspace = bpy.data.workspaces[screen_selection]
 
 def insert_clip(scene, path_source, strip_type, name, frame_start, channel):
+    frame_start = int(frame_start)
     path_source_abs = bpy.path.abspath(path_source)
     strips_new = []
     if (strip_type == 'MOVIE'):

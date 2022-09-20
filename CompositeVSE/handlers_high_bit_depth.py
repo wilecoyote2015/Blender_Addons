@@ -7,6 +7,8 @@ from os import path, makedirs
 import bpy
 import subprocess
 from bpy.app.handlers import persistent
+import os
+from tempfile import TemporaryDirectory
 
 # todo: delete frames post render
 
@@ -22,11 +24,11 @@ def render_post_compositor(scene):
         #if name_master_scene:
             #if bpy.data.scenes[name_master_scene].eswc_info.bool_use_high_bit_depth_fix:
                 #insert_inputs_for_framegrabs(scene)
-                
+
         insert_inputs_for_framegrabs(scene)
 
         # delete the temp folder with framegrabs
-        path_temp_dir = get_path_dir_output()
+        path_temp_dir = get_dir_output()
         if path.exists(path_temp_dir):
             shutil.rmtree(path_temp_dir)
 
@@ -63,7 +65,7 @@ def apply_function_compositing_scene(scene, function):
                 # it is pre render, so that the frame in the sequence's scene is not the correct frame.
                 # hence, calculate the correct frame in the scene
                 frame_in_sequence = scene.frame_current - sequence.frame_start + 1  # +1 because frames start at 1
-                sequence.scene.frame_current = frame_in_sequence
+                sequence.scene.frame_current = int(frame_in_sequence)
                 function(sequence.scene)
 
 def insert_framegrabs_for_inputs(scene):
@@ -158,10 +160,22 @@ def get_colorspace(node):
         raise NotImplementedError('Node {} not supported'.format(node.bl_static_type))
 
 def render_framegrab(filepath, frame, filename):
-    command_framerate = "ffprobe -v 0 -of csv=p=0 -select_streams v:0 -show_entries " \
-                        "stream=r_frame_rate {}".format(filepath)
-    framerate = subprocess.run(command_framerate.split(' '),
-                               stdout=subprocess.PIPE).stdout.decode('utf-8').split('/')
+    command_framerate = [
+        "ffprobe",
+        "-v",
+        "0",
+        "-of",
+        "csv=p=0" ,
+        "-select_streams",
+        "v:0" ,
+        "-show_entries",
+        "stream=r_frame_rate",
+        # f'\"{filepath}\"'
+        filepath
+    ]
+    print(command_framerate)
+    framerate = subprocess.run(command_framerate,
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE).stdout.decode('utf-8').split('/')
     framerate_float = float(framerate[0]) / float(framerate[1])
     seconds = frame / framerate_float
     
@@ -186,18 +200,18 @@ def render_framegrab(filepath, frame, filename):
     # return r'/home/bjoern/Downloads/darktable_exported/YR0001552.jpg'
     return path_output
 
-def get_path_dir_output():
-    path_blend = bpy.path.abspath('.')
-    return path.join(path_blend, 'temp_high_bit_depth')
+# def get_path_dir_output():
+#     path_blend = bpy.path.abspath('.')
+#     return path.join(path_blend, 'temp_high_bit_depth')
 
 
 def get_dir_output():
-    path_dir_output = get_path_dir_output()
+    path_dir_output = os.path.join(bpy.app.tempdir, 'framegrabs_suntools')
 
     # create directory
     if not path.exists(path_dir_output):
         makedirs(path_dir_output)
-    return '/run/media/bjoern/daten'
+    return path_dir_output
 
 def register_handlers():
     bpy.app.handlers.render_pre.append(render_pre_sequencer)
