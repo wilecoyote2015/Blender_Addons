@@ -20,20 +20,22 @@ import bpy
 from CompositeVSE import common_functions
 import os
 
+# FIXME: Numerous issues when toggling composition visibility. Best to rewrite it.
+#   Maybe. when creating composition, do not replace movie by composition, but instead create
+#   meta strip with both. Then toggling simply hides/unhides composition strip.
+#   this way, there is no hassle with transferring all the properties (except when creating the metastrip, where all
+#   connections to modifier strips etc. must be reconnected and trafo / keyframes / modifiers must be transferred (
+#   remember to remove those from the original strip!)
+#   For transition etc. sequences, simply search all sequences whether they have input_1 or input_2 field and if the
+#   value referes to the source sequence, change this to the meta sequence.
+#   For keyframes, I have no idea. But see https://docs.blender.org/api/current/bpy.types.bpy_struct.html#bpy.types.bpy_struct.keyframe_insert
+#   for modifiers, can one simply copy the  bpy.types.SequenceModifiers struct from source and repace the one of source with an empty one afterwards?
+# TODO: composition scene should have render resolution of input file
+# TODO: toggling composition visibility: end!
+
 class OperatorCreateCompositionFromStrip(bpy.types.Operator):
     bl_idname = "sequencer.eswc_single_comp"
     bl_label = "Create Comp from strips"
-
-    def copy_render_settings(self, scene_a, scene_b):
-        '''
-        Copy render settings for scene A to match original scene B
-        '''
-        scene_a.render.resolution_x = scene_b.render.resolution_x
-        scene_a.render.resolution_y = scene_b.render.resolution_y
-        # scene_a.render.resolution_percentage = scene_b.render.resolution_percentage
-        scene_a.render.fps = scene_b.render.fps
-        path = bpy.path.abspath(os.path.join("//Comp", scene_a.name + "/" + scene_a.name))
-        scene_a.render.filepath = bpy.path.relpath(path)
 
     def copy_comp_render_settings(self, scene_a, scene_b):
         # copy compositor render settings
@@ -46,17 +48,30 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
     def create_composition_for_strip(self, original_strip, context):
         # Creates new scene but doesn't set it as active.
         # attention: new_scene_name may be != new_scene.name, if scene of same name already exists.
-        new_scene_name = '{}{}'.format('Comp_', original_strip.name)
-        new_scene = bpy.data.scenes.new(new_scene_name)
-
         editing_scene = context.scene
+
+        new_scene_name = '{}{}'.format('Comp_', original_strip.name)
+        bpy.ops.scene.new(type='LINK_COPY')
+        new_scene = context.scene
+        new_scene.name = new_scene_name
+        # new_scene = bpy.data.scenes.new(new_scene_name)
+
+        # editing_scene = context.scene
         eswc_info_editing = editing_scene.eswc_info
 
         # Change render settings for new scene to match original scene
-        self.copy_render_settings(new_scene, editing_scene)
+        # self.copy_render_settings(new_scene, editing_scene)
 
         # set render resolution to full so that scaling is done in sequencer
         new_scene.render.resolution_percentage = 100
+
+        if original_strip.type in ('MOVIE', 'MOVIECLIP'):
+            print(original_strip.fps)
+            new_scene.render.fps_base = int(round(original_strip.fps)) / original_strip.fps
+            new_scene.render.fps = int(round(original_strip.fps))
+
+        # new_scene.render.resolution_x = original_strip.resolution_x
+        # new_scene.render.resolution_y = original_strip.resolution_y
 
         # Setup new scene EndFrame to match original_strip length
         new_scene.frame_end = int(original_strip.frame_final_duration + original_strip.frame_offset_start + original_strip.frame_offset_end)
@@ -69,6 +84,7 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
         new_scene.eswc_info.master_scene = editing_scene.name
         new_scene.eswc_info.type_original_strip = original_strip.type
         new_scene.eswc_info.path_input = common_functions.get_filepath_strip(original_strip)
+        bpy.context.window.scene = editing_scene
 
         # context.screen.scene.update()
 
@@ -135,6 +151,9 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
         # use colorspace of source file
         image_node.image.colorspace_settings.name = strip.colorspace_settings.name
 
+        print(image_node.image.size)
+        new_scene.render.resolution_x = int(image_node.image.size[0])
+        new_scene.render.resolution_y = int(image_node.image.size[1])
 
         # Other input settings
         # length shall be original movie length.

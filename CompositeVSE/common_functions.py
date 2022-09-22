@@ -42,7 +42,7 @@ def create_strip_for_composition(strip_composition):
 
     new_strip = None
     if eswc_info_composite.type_original_strip == 'MOVIE':
-        bpy.ops.sequencer.movie_strip_add(filepath=path_input, replace_sel=True, sound=False)
+        bpy.ops.sequencer.movie_strip_add(filepath=path_input, replace_sel=True, sound=False, use_framerate=False)
         # bpy.context.scene.update()
         new_strip = bpy.context.scene.sequence_editor.active_strip
     elif eswc_info_composite.type_original_strip == 'IMAGE':
@@ -58,13 +58,12 @@ def create_strip_for_composition(strip_composition):
         new_strip = bpy.context.scene.sequence_editor.active_strip
 
     if new_strip is not None:
+        # TODO: use ID instead of name
         new_strip.composite_scene = strip_composition.scene.name
-
         replace_strip(strip_composition, new_strip, bpy.context)
     else:
         print({'ERROR_INVALID_INPUT'}, 'The following composite strip refers to an invalid strip type:'
                                        ' {}'.format(strip_composition.name))
-
     return new_strip
 
 

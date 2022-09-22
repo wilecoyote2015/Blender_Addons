@@ -81,7 +81,7 @@ class OperatorSetTimeline (bpy.types.Operator):
 #                         if (sequence.filepath == bpy.path.relpath(filepath)):
 #                             sequence.filepath = bpy.path.relpath(filepath_new)
 #                 except:
-#                     print("hadn't a sequencer. poor little scene!")
+#                     pass
 
 
 class OperatorCreateProxies(bpy.types.Operator):
@@ -90,7 +90,18 @@ class OperatorCreateProxies(bpy.types.Operator):
     bl_idname = "file.moviemanager_proxy"
     bl_label = "Create Proxies"
 
+    current_strip = bpy.props.StringProperty(name='Processing File:')
+
+    # def execute(self, context):
+    #     message = f'{self.current_strip}'
+    #     self.report({'INFO'}, message)
+    #     return {'FINISHED'}
+
     def invoke(self, context, event ):
+
+        # wm = context.window_manager
+        # wm.invoke_popup(self)
+
         name_scene_current = bpy.context.scene.name
         
         masterscene = get_masterscene()
@@ -145,8 +156,16 @@ class OperatorCreateProxies(bpy.types.Operator):
 
         if strips_created:
             self.report({'INFO'}, 'Generating Proxies. Blender freezes until job is finished.')
+            for strip in bpy.context.scene.sequence_editor.sequences:
+                # bpy.ops.sequencer.select_all('DESELECT')
+                strip.select = True
+                self.current_strip = strip.name
+                try:
+                    bpy.ops.sequencer.rebuild_proxy()
+                except:
+                    pass
+                strip.select = False
             bpy.ops.sequencer.select_all(action='SELECT')
-            bpy.ops.sequencer.rebuild_proxy()
             bpy.ops.sequencer.delete()
         else:
             self.report({'INFO'},'No video files found.')
@@ -161,6 +180,9 @@ class OperatorCreateProxies(bpy.types.Operator):
         self.report({'INFO'}, 'Finished proxy generation.')
 
         return {'FINISHED'}
+
+    def check(self, context):
+        return True
 
     def switch_to_scene(self, scene_name):
         """ If a scene of given name does not exist, create it. Then switch context to the scene
@@ -180,6 +202,12 @@ class OperatorCreateProxies(bpy.types.Operator):
 
         scene = bpy.data.scenes[scene_name]
         bpy.context.window.scene = scene
+
+    # def draw(self, context):
+    #     layout = self.layout
+    #     col = layout.column()
+    #     # layout.label(self.current_strip)
+    #     col.prop(self, "current_strip")
 
     def create_strips_and_set_proxy_settings(self, masterscene, filepaths):
         strips_created = False
