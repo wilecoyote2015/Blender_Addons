@@ -113,6 +113,7 @@ class OperatorCreateProxies(bpy.types.Operator):
                 and masterscene.suntools_info.p25 == False
                 and masterscene.suntools_info.p75 == False
                 and masterscene.suntools_info.p100 == False ):
+            print(masterscene.suntools_info.p25)
             self.report({'ERROR_INVALID_INPUT'},'No Proxies to create!.')
             return {'CANCELLED'}
 
@@ -152,21 +153,47 @@ class OperatorCreateProxies(bpy.types.Operator):
         else:
             filepaths = [ os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory,f)) ]
 
-        strips_created = self.create_strips_and_set_proxy_settings(masterscene, filepaths)
+        self.report({'INFO'}, 'Generating Proxies. Blender freezes until job is finished.')
 
-        if strips_created:
-            self.report({'INFO'}, 'Generating Proxies. Blender freezes until job is finished.')
-            for strip in bpy.context.scene.sequence_editor.sequences:
-                # bpy.ops.sequencer.select_all('DESELECT')
-                strip.select = True
-                self.current_strip = strip.name
-                try:
-                    bpy.ops.sequencer.rebuild_proxy()
-                except:
-                    pass
-                strip.select = False
-            bpy.ops.sequencer.select_all(action='SELECT')
-            bpy.ops.sequencer.delete()
+        for path in filepaths:
+            filename = os.path.basename(path).decode()
+            strip_type = detect_strip_type(filename)
+
+            if (strip_type == 'MOVIE'):
+                print('creating proxy for {}'.format(path))
+                bpy.ops.sequencer.movie_strip_add(filepath=path)
+                for sequence in bpy.context.scene.sequence_editor.sequences:
+                    if (sequence.type == 'MOVIE'):
+                        sequence.use_proxy = True
+                        sequence.proxy.build_25 = masterscene.suntools_info.p25
+                        sequence.proxy.build_50 = masterscene.suntools_info.p50
+                        sequence.proxy.build_75 = masterscene.suntools_info.p75
+                        sequence.proxy.build_100 = masterscene.suntools_info.p100
+                        # if (masterscene.suntools_info.p25 == True):
+                        #     sequence.proxy.build_25 = True
+                        # if (masterscene.suntools_info.p50 == True):
+                        #     sequence.proxy.build_50 = True
+                        # if (masterscene.suntools_info.p75 == True):
+                        #     sequence.proxy.build_75 = True
+                        # if (masterscene.suntools_info.p100 == True):
+                        #     sequence.proxy.build_100 = True
+
+                    self.report({'INFO'}, f'Generating Proxy for strip {sequence.name}.')
+                    # bpy.ops.sequencer.select_all(action='DESELECT')
+                    sequence.select = True
+                    # self.current_strip = sequence.name
+                    try:
+                        bpy.ops.sequencer.rebuild_proxy()
+                    except:
+                        pass
+                    # strip.select = False
+                    bpy.ops.sequencer.select_all(action='SELECT')
+                    bpy.ops.sequencer.delete()
+
+
+        # strips_created = self.create_strips_and_set_proxy_settings(masterscene, filepaths)
+
+
         else:
             self.report({'INFO'},'No video files found.')
 

@@ -29,7 +29,21 @@ class Switch_to_Composite_Operator(bpy.types.Operator):
             scn = context.scene
 
             eswc_info = scn.eswc_info
-            common_functions.switch_screen(context, eswc_info.enum_comp_screen)
+            eswc_info.edit_screen = bpy.context.window.workspace.name
+            if eswc_info.comp_screen:
+                workspace = eswc_info.comp_screen
+            else:
+                workspaces = common_functions.avail_screens()
+                workspace = workspaces[0][0]
+
+                for ws in workspaces:
+                    if 'comp' in ws[0].lower():
+                        workspace = ws[0]
+
+            common_functions.switch_screen(
+                context,
+                workspace
+            )
             context.window.scene = stripscene
 
             try:
@@ -53,7 +67,7 @@ class Switch_to_Composite_Nodepanel_Operator(bpy.types.Operator):
             target_scene = master_scene.sequence_editor.active_strip.scene
             eswc_info = master_scene.eswc_info
 
-            common_functions.switch_screen(context, eswc_info.enum_comp_screen)
+            common_functions.switch_screen(context, eswc_info.comp_screen)
             context.window.scene = target_scene
 
             try:
@@ -77,7 +91,8 @@ class Switch_back_to_Timeline_Operator(bpy.types.Operator):
         context.scene.render.resolution_percentage = 100
 
         eswc_info = scn.eswc_info
-        common_functions.switch_screen(context, eswc_info.enum_edit_screen)
+        eswc_info.comp_screen = bpy.context.window.workspace.name
+        common_functions.switch_screen(context, eswc_info.edit_screen)
         context.window.scene = scn
 
         return {'FINISHED'}

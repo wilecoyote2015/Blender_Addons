@@ -67,21 +67,27 @@ def register():
     # strip composite scene name; used to interchange movies and composites
     
     # todo: rename the properties to start with eswc.
-    bpy.types.ImageSequence.composite_scene = bpy.props.StringProperty(
-        name="Composite Scene",
-        description="The name of the composite scene associated to the strip",
-        default=""
-    )
-    bpy.types.MovieSequence.composite_scene = bpy.props.StringProperty(
-        name="Composite Scene",
-        description="The name of the composite scene associated to the strip",
-        default=""
-    )
-    # todo: MovieClip sequences are not supported yet.
-    bpy.types.MovieClipSequence.composite_scene = bpy.props.StringProperty(
-        name="Composite Scene",
-        description="The name of the composite scene associated to the strip",
-        default=""
+    # bpy.types.ImageSequence.composite_scene = bpy.props.StringProperty(
+    #     name="Composite Scene",
+    #     description="The name of the composite scene associated to the strip",
+    #     default=""
+    # )
+    # bpy.types.MovieSequence.composite_scene = bpy.props.StringProperty(
+    #     name="Composite Scene",
+    #     description="The name of the composite scene associated to the strip",
+    #     default=""
+    # )
+    # # todo: MovieClip sequences are not supported yet.
+    # bpy.types.MovieClipSequence.composite_scene = bpy.props.StringProperty(
+    #     name="Composite Scene",
+    #     description="The name of the composite scene associated to the strip",
+    #     default=""
+    # )
+
+    bpy.types.MetaSequence.is_composite = bpy.props.BoolProperty(
+        name='Is Composite',
+        description='Whether the Meta Strip corresponds to Node Composition',
+        default=False
     )
 
 

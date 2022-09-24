@@ -20,30 +20,18 @@ import bpy
 from CompositeVSE import common_functions
 import os
 
-# FIXME: Numerous issues when toggling composition visibility. Best to rewrite it.
-#   Maybe. when creating composition, do not replace movie by composition, but instead create
-#   meta strip with both. Then toggling simply hides/unhides composition strip.
-#   this way, there is no hassle with transferring all the properties (except when creating the metastrip, where all
+# TODO: all
 #   connections to modifier strips etc. must be reconnected and trafo / keyframes / modifiers must be transferred (
 #   remember to remove those from the original strip!)
 #   For transition etc. sequences, simply search all sequences whether they have input_1 or input_2 field and if the
 #   value referes to the source sequence, change this to the meta sequence.
 #   For keyframes, I have no idea. But see https://docs.blender.org/api/current/bpy.types.bpy_struct.html#bpy.types.bpy_struct.keyframe_insert
 #   for modifiers, can one simply copy the  bpy.types.SequenceModifiers struct from source and repace the one of source with an empty one afterwards?
-# TODO: composition scene should have render resolution of input file
-# TODO: toggling composition visibility: end!
+# TODO: Toggle Visibility: Also handle metastrips, possibly containing composite-metastrips recursively!
 
 class OperatorCreateCompositionFromStrip(bpy.types.Operator):
     bl_idname = "sequencer.eswc_single_comp"
     bl_label = "Create Comp from strips"
-
-    def copy_comp_render_settings(self, scene_a, scene_b):
-        # copy compositor render settings
-        scene_a.node_tree.use_opencl = scene_b.node_tree.use_opencl
-        scene_a.node_tree.two_pass = scene_b.node_tree.two_pass
-        scene_a.node_tree.render_quality = scene_b.node_tree.render_quality
-        scene_a.node_tree.edit_quality = scene_b.node_tree.edit_quality
-        scene_a.node_tree.chunk_size = scene_b.node_tree.chunk_size
 
     def create_composition_for_strip(self, original_strip, context):
         # Creates new scene but doesn't set it as active.
@@ -52,15 +40,17 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
 
         new_scene_name = '{}{}'.format('Comp_', original_strip.name)
         bpy.ops.scene.new(type='LINK_COPY')
+        # ensure that copied SunTools data do not mark scene as master scene
+        suntools_info = getattr(new_scene_name, 'suntools_info', None)
+        if suntools_info:
+            suntools_info.masterscene = False
+
+
         new_scene = context.scene
         new_scene.name = new_scene_name
-        # new_scene = bpy.data.scenes.new(new_scene_name)
 
         # editing_scene = context.scene
         eswc_info_editing = editing_scene.eswc_info
-
-        # Change render settings for new scene to match original scene
-        # self.copy_render_settings(new_scene, editing_scene)
 
         # set render resolution to full so that scaling is done in sequencer
         new_scene.render.resolution_percentage = 100
@@ -70,9 +60,6 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
             new_scene.render.fps_base = int(round(original_strip.fps)) / original_strip.fps
             new_scene.render.fps = int(round(original_strip.fps))
 
-        # new_scene.render.resolution_x = original_strip.resolution_x
-        # new_scene.render.resolution_y = original_strip.resolution_y
-
         # Setup new scene EndFrame to match original_strip length
         new_scene.frame_end = int(original_strip.frame_final_duration + original_strip.frame_offset_start + original_strip.frame_offset_end)
 
@@ -81,12 +68,11 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
 
         self.create_node_tree_for_strip(new_scene, original_strip, eswc_info_editing)
 
+        # FIXME: return operator will not work if reusing comp is activated and the same clip is used in multiple scenes
         new_scene.eswc_info.master_scene = editing_scene.name
         new_scene.eswc_info.type_original_strip = original_strip.type
         new_scene.eswc_info.path_input = common_functions.get_filepath_strip(original_strip)
         bpy.context.window.scene = editing_scene
-
-        # context.screen.scene.update()
 
         return new_scene
 
@@ -159,18 +145,13 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
         # length shall be original movie length.
         # todo: is this necessary? Doesn't the strip have the duration by default?
         # todo: why set frame offset?
-        image_node.frame_duration = int(strip.frame_final_duration + \
-                                    strip.frame_offset_start + strip.frame_offset_end + \
+        image_node.frame_duration = int(strip.frame_final_duration +
+                                    strip.frame_offset_start + strip.frame_offset_end +
                                     strip.animation_offset_end)
         image_node.frame_offset = int(strip.animation_offset_start)
 
         image_node.use_cyclic = False
         image_node.use_auto_refresh = True
-
-        # # Update scene
-        # new_scene.update()
-
-        # new_scene.frame_current = 2
 
         # create scale node
         if eswc_info.bool_add_scale:
@@ -249,7 +230,7 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
     def invoke(self, context, event):
         eswc_info = context.scene.eswc_info
 
-        selected_strips = context.selected_sequences
+        selected_strips = tuple(context.selected_sequences)
 
         # Loop selected strips
         names_strips_failed = []
@@ -272,15 +253,38 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
                     names_strips_failed.append(strip.name)
                     continue
 
+                bpy.ops.sequencer.select_all(action='DESELECT')
+
+                strip.select = True
+                bpy.ops.sequencer.meta_make()
+                meta_strip = strip.parent_meta()
+
+                meta_strip.is_composite = True
+
+                # if any strips use the strip to replace as input, set input to new strip
+                # TODO: also copy modifiers, keyframes etc.
+                for sequence in context.scene.sequence_editor.sequences_all:
+                    if hasattr(sequence, 'input_1') and sequence.input_1 == strip:
+                        sequence.input_1 = meta_strip
+                    if hasattr(sequence, 'input_2') and sequence.input_2 == strip:
+                        sequence.input_2 = meta_strip
+
+                bpy.ops.sequencer.meta_toggle()
+
+                strip_composite = common_functions.insert_scene_timeline(new_scene=comp_scene,
+                                                                         original_strip=strip,
+                                                                         context=context)
+                bpy.ops.sequencer.meta_toggle()
+
+                common_functions.copy_settings_to_strip(strip, meta_strip, common_functions.SETTINGS_STRIP_COPY_TO_META)
+                common_functions.reset_settings_strip(strip, common_functions.SETTINGS_RESET_SOURCE_STRIP)
+
                 # insert the strip into the scene in place of the original if composite strips are to be shown.
                 # else, set the name of the scene
-                if eswc_info.bool_show_compositions:
-                    strip_composite = common_functions.insert_scene_timeline(new_scene=comp_scene,
-                                                           original_strip=strip, 
-                                                           context=context)
+                if not eswc_info.bool_show_compositions:
+                    strip_composite.mute = True
                 else:
-                    strip.composite_scene = comp_scene.name
-
+                    strip.mute = True
             else:
                 print("Active Strip is not a movie or an image sequence.")
 

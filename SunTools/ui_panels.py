@@ -98,13 +98,19 @@ class PanelMovieManager(bpy.types.Panel):
                 # col.prop( scn, "editing_screen" )
                 # col.prop( scn, "editing_range_screen" )
                 # comp screen selector
+                # TODO: simply remember screens when changing.
                 col.prop(scn, "enum_range_screen")
 
                 # editing screen selector
                 col.prop(scn, "enum_edit_screen")
 
-                row = layout.row()
-                row.prop(scn, "meta")
+                col.prop(scn, "p100_edit_range")
+                row.prop(scn, "p75_edit_range")
+                row.prop(scn, "p50_edit_range")
+                row.prop(scn, "p25_edit_range")
+
+                # row = layout.row()
+                # row.prop(scn, "meta")
 
                 # row.prop( scn, "custom_screen" )
                 # col.prop( scn, "zoom" )

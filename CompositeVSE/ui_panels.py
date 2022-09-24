@@ -37,7 +37,7 @@ class CompPanel(bpy.types.Panel):
         if activestrip is not None:
             if activestrip.type == "SCENE":
                 layout.operator("sequencer.eswc_switch_to_composite")
-            if activestrip.type in {"MOVIE", "IMAGE"} and activestrip.composite_scene == "":
+            if activestrip.type in {"MOVIE", "IMAGE"}:
                 layout.operator("sequencer.eswc_single_comp")
 
         layout.prop(eswc_info, "bool_show_options")
@@ -48,7 +48,7 @@ class CompPanel(bpy.types.Panel):
             col.prop(eswc_info, "bool_show_compositions")
             col.prop(eswc_info, "bool_reuse_compositions")
             col.prop(eswc_info, "bool_add_viewer")
-            col.prop(eswc_info, "bool_add_scale")
+            # col.prop(eswc_info, "bool_add_scale")
             col.prop(eswc_info, "bool_use_high_bit_depth_fix")
 
             if len(bpy.data.node_groups) != 0:
@@ -57,14 +57,14 @@ class CompPanel(bpy.types.Panel):
                     # node group selector
                     col.prop(eswc_info, "enum_node_groups")
 
-            box = layout.box()
-            col = box.column(align=True)
+            # box = layout.box()
+            # col = box.column(align=True)
 
-            # comp screen selector
-            col.prop(eswc_info, "enum_comp_screen")
+            # # comp screen selector
+            # col.prop(eswc_info, "enum_comp_screen")
 
-            # editing screen selector
-            col.prop(eswc_info, "enum_edit_screen")
+            # # editing screen selector
+            # col.prop(eswc_info, "enum_edit_screen")
 
 
 class NodePanel(bpy.types.Panel):

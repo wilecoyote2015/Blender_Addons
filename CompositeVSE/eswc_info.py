@@ -110,14 +110,21 @@ class ESWC_Info(bpy.types.PropertyGroup):
     enum_node_groups: EnumProperty(items=avail_nodegroups,
                                     name="Node Group")
 
-    def avail_screens(self, context):
-        items = []
-        for i, elem in enumerate(bpy.data.workspaces):
-            items.append((elem.name, elem.name, elem.name))
-        return items
 
-    enum_edit_screen: EnumProperty(items=avail_screens,
-                                    name="Editing Workspace")
 
-    enum_comp_screen: EnumProperty(items=avail_screens,
-                                    name="Compositing Workspace")
+    # TODO: Default to Composite workspace and workspace used for editing when switched the first time.
+    # enum_edit_screen: EnumProperty(items=avail_screens,
+    #                                 name="Editing Workspace")
+
+    edit_screen: StringProperty(
+        name='Editing Workspace',
+        default=''
+    )
+    comp_screen: StringProperty(
+        name='Compositing Workspace',
+        default=''
+    )
+
+    # enum_comp_screen: EnumProperty(items=avail_screens,
+    #                                 name="Compositing Workspace")
+

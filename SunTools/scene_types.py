@@ -60,6 +60,21 @@ class SunToolsInfo(bpy.types.PropertyGroup):
     p100: BoolProperty( name="100%",
                                          description = "Proxy sizes to be created",
                                          default=False )
+    p25_edit_range: BoolProperty( name="25%",
+                                         description = "Proxy sizes to activate for edit range and inserted strips",
+                                         default=False )
+
+    p50_edit_range: BoolProperty( name="50%",
+                                         description = "Proxy sizes to activate for edit range and inserted strips",
+                                         default=False )
+
+    p75_edit_range: BoolProperty( name="75%",
+                                         description = "Proxy sizes to activate for edit range and inserted strips",
+                                         default=False )
+
+    p100_edit_range: BoolProperty( name="100%",
+                                         description = "Proxy sizes to activate for edit range and inserted strips",
+                                         default=False )
     proxy_recursive: BoolProperty(name="Proxy: include subfoders",
                                          description = 'Generate proxies also for files in subfolders',
                                          default=False )

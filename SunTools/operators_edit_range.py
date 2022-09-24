@@ -23,6 +23,10 @@ import os
 
 # todo: support for converting old projects!
 
+# FIXME: Ranges are not saved anymore.
+
+# FIXME: scene switching via linking copies the eswc_info and vice versa!
+
 class OperatorEditRange(bpy.types.Operator):
     bl_idname = "file.moviemanager_edit_range"
     bl_label = "Edit Range"
@@ -159,7 +163,13 @@ class OperatorEditRange(bpy.types.Operator):
                 strip_new.channel = channel
         
     def insert_clip(self, scene, path_source, strip_type, name):
-        strips_new = insert_clip(scene, path_source, strip_type, name, 0, 1)
+        masterscene = get_masterscene()
+        strips_new = insert_clip(scene, path_source, strip_type, name, 0, 1,
+                                 masterscene.suntools_info.p25_edit_range,
+                                 masterscene.suntools_info.p50_edit_range,
+                                 masterscene.suntools_info.p75_edit_range,
+                                 masterscene.suntools_info.p100_edit_range,
+                                 )
 
         if strips_new is None:
             raise ValueError('Strip type {} not supported'.format(strip_type))
@@ -237,7 +247,11 @@ class OperatorInsertStripIntoMasterscene(bpy.types.Operator):
                 strip_to_insert.type,
                 strip_to_insert.name,
                 frame_start,
-                channel
+                channel,
+                masterscene.suntools_info.p25_edit_range,
+                masterscene.suntools_info.p50_edit_range,
+                masterscene.suntools_info.p75_edit_range,
+                masterscene.suntools_info.p100_edit_range,
             )
             
             if strips_new is None:

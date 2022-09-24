@@ -121,7 +121,8 @@ def switch_workspace(screen_selection):
 
     bpy.context.window.workspace = bpy.data.workspaces[screen_selection]
 
-def insert_clip(scene, path_source, strip_type, name, frame_start, channel):
+def insert_clip(scene, path_source, strip_type, name, frame_start, channel,
+                p_25, p_50, p_75, p_100):
     frame_start = int(frame_start)
     path_source_abs = bpy.path.abspath(path_source)
     strips_new = []
@@ -147,6 +148,12 @@ def insert_clip(scene, path_source, strip_type, name, frame_start, channel):
             pass
 
         strips_new[0].use_proxy = True
+        strips_new[0].proxy.build_25 = p_25
+        strips_new[0].proxy.build_50 = p_50
+        strips_new[0].proxy.build_75 = p_75
+        strips_new[0].proxy.build_100 = p_100
+
+
     elif (strip_type == 'SOUND'):
         strips_new.append(
             scene.sequence_editor.sequences.new_sound(
