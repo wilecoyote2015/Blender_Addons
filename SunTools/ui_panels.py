@@ -55,31 +55,14 @@ class PanelMovieManager(bpy.types.Panel):
         scn = context.scene.suntools_info
         layout = self.layout
 
-        # TODO: Show only if master scene exists
-        if not scn.timeline:
-            row = layout.row()
-            row.operator( "sequencer.moviemanager_switch_back_to_timeline" )
-
-            # if scn.source_path != "none":
-            #     row = layout.row()
-            #     col = row.column()
-            #     col.operator( "sequencer.moviemanager_hide" )
-            #     row.prop(scn, "good_clip" )
-
-
         row = layout.row()
-        col = row.column()
-        print(scn.timeline)
+        # col = row.column()
         if not scn.timeline:
-            col.operator( "sequencer.moviemanager_insert_strip_masterscene" )
+            row.operator( "sequencer.moviemanager_switch_back_to_timeline" )
+            row = layout.row()
+            row.operator( "sequencer.moviemanager_insert_strip_masterscene" )
             row = layout.row()
             row.operator( "sequencer.moviemanager_set_timeline" )
-
-        if bpy.context.scene.sequence_editor.active_strip and bpy.context.scene.sequence_editor.active_strip.type == 'META':
-            row = layout.row()
-            col = row.column()
-            col.operator("sequencer.moviemanager_unmeta")
-
 
         row = layout.row()
 
@@ -95,25 +78,10 @@ class PanelMovieManager(bpy.types.Panel):
                 row = layout.row()
                 col = row.column()
 
-                # col.prop( scn, "editing_screen" )
-                # col.prop( scn, "editing_range_screen" )
-                # comp screen selector
-                # TODO: simply remember screens when changing.
-                col.prop(scn, "enum_range_screen")
-
-                # editing screen selector
-                col.prop(scn, "enum_edit_screen")
-
                 col.prop(scn, "p100_edit_range")
                 row.prop(scn, "p75_edit_range")
                 row.prop(scn, "p50_edit_range")
                 row.prop(scn, "p25_edit_range")
-
-                # row = layout.row()
-                # row.prop(scn, "meta")
-
-                # row.prop( scn, "custom_screen" )
-                # col.prop( scn, "zoom" )
 
 class PanelTrimTools(bpy.types.Panel):
     bl_space_type = "SEQUENCE_EDITOR"
@@ -134,10 +102,64 @@ class PanelTrimTools(bpy.types.Panel):
         row = layout.row()
         col = row.column()
 
-        col.operator( "sequencer.trimtools_cut_current" )
+        # col.operator( "sequencer.trimtools_cut_current" )
         row.operator( "sequencer.trimtools_snap_end" )
 
         row = layout.row()
         col = row.column()
         col.operator( "sequencer.trimtools_trim_left" )
         row.operator( "sequencer.trimtools_trim_right" )
+
+
+class CompPanel(bpy.types.Panel):
+    bl_label = "Edit strip with Compositor"
+    bl_space_type = "SEQUENCE_EDITOR"
+    bl_category = "Edit Strip with Compositor"
+    bl_region_type = "UI"
+
+    def draw(self, context):
+        scn = context.scene
+        activestrip = scn.sequence_editor.active_strip
+        layout = self.layout
+        # try:
+        eswc_info = scn.eswc_info
+        if activestrip is not None:
+            if activestrip.type == "META" and activestrip.is_composite:
+                layout.operator("sequencer.eswc_switch_to_composite")
+            if activestrip.type in {"MOVIE", "IMAGE"}:
+                layout.operator("sequencer.eswc_single_comp")
+
+        layout.prop(eswc_info, "bool_show_options")
+        if eswc_info.bool_show_options:
+            box = layout.box()
+            col = box.column(align=True)
+            col.prop(eswc_info, "settings")
+            col.prop(eswc_info, "bool_show_compositions")
+            col.prop(eswc_info, "bool_reuse_compositions")
+            col.prop(eswc_info, "bool_use_high_bit_depth_fix")
+
+            if len(bpy.data.node_groups) != 0:
+                col.prop(eswc_info, "bool_add_group")
+                if eswc_info.bool_add_group:
+                    # node group selector
+                    col.prop(eswc_info, "enum_node_groups")
+
+class NodePanel(bpy.types.Panel):
+    bl_space_type = "NODE_EDITOR"
+    bl_region_type = "UI"
+    bl_label = "Edit strip with Compositor"
+    bl_category = "Edit Strip with Compositor"
+
+    def draw(self, context):
+        scn = context.scene
+        try:
+            layout = self.layout
+            row = layout.row()
+            col = row.column()
+            try:
+                col.operator("node.eswc_switch_back_to_timeline")
+                col.operator("node.eswc_switch_to_composite_nodepanel")
+            except KeyError:
+                pass
+        except AttributeError:
+            pass

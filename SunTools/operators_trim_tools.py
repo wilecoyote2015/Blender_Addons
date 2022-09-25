@@ -23,6 +23,9 @@ class OperatorSelectCurrent (bpy.types.Operator):
     bl_label = "Select current Strip"
     bl_description = "Select the Strip on the current frame"
 
+    # TODO: recognize composition meta strip as video to support
+    #   associated audio selection
+
     def get_strips_current_frame(self, context):
         current_frame = bpy.context.scene.frame_current
         

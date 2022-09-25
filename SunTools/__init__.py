@@ -39,17 +39,26 @@ from SunTools.operators_trim_tools import (
 from SunTools.ui_panels import (
     PanelMovieManagerBrowser,
     PanelMovieManager,
-    PanelTrimTools
+    PanelTrimTools,
+    NodePanel,
+    CompPanel
 )
-from SunTools.scene_types import SunToolsInfo
+from SunTools.handlers_high_bit_depth import register_handlers, unregister_handlers
+from SunTools.operator_composition import OperatorCreateCompositionFromStrip
+from SunTools.operators_navigation import (
+    Switch_back_to_Timeline_Operator,
+    Switch_to_Composite_Nodepanel_Operator,
+    Switch_to_Composite_Operator
+)
+from SunTools.scene_types import SunToolsInfo, ESWC_Info
 
 bl_info = {
     "name": "SunTools",
     "description": "Define in- and outpoints of your material in the file browser",
-    "author": "Björn Sonnenschein",
-    "version": (1, 3),
-    "blender": (2, 80, 0),
-    "location": "File Browser > Tools",
+    "author": "Carlos Padial, TMW, Björn Sonnenschein",
+    "version": (1, 4),
+    "blender": (3, 3, 0),
+    "location": "File Browser > Tools, Sequencer > UI panel, Node Editor > UI panel",
     "wiki_url": "None Yet"
                 "None Yet",
     "tracker_url": "None"
@@ -58,6 +67,7 @@ bl_info = {
 
 classes = (
     SunToolsInfo,
+    ESWC_Info,
     OperatorEditRange,
     OperatorBackToTimeline,
     OperatorInsertStripIntoMasterscene,
@@ -72,18 +82,37 @@ classes = (
     OperatorSnapEnd,
     PanelMovieManagerBrowser,
     PanelMovieManager,
-    PanelTrimTools
+    PanelTrimTools,
+    CompPanel,
+    NodePanel,
+    Switch_to_Composite_Operator,
+    Switch_to_Composite_Nodepanel_Operator,
+    Switch_back_to_Timeline_Operator,
+    OperatorCreateCompositionFromStrip
 )
 
 register_classes, unregister_classes = bpy.utils.register_classes_factory(classes)
 
 def register():
+    bpy.types.MetaSequence.is_composite = bpy.props.BoolProperty(
+        name='Is Composite',
+        description='Whether the Meta Strip corresponds to Node Composition',
+        default=False
+    )
     register_classes()
     bpy.types.Scene.suntools_info = bpy.props.PointerProperty(type=SunToolsInfo)
+    bpy.types.Scene.eswc_info = bpy.props.PointerProperty(type=ESWC_Info)
+    register_handlers()
+
 
 def unregister():
     unregister_classes()
+    unregister_handlers()
+
     del bpy.types.Scene.suntools_info
+    del bpy.types.Scene.eswc_info
+    # del bpy.types.MovieClipSequence.composite_scene
+    del bpy.types.MetaSequence.is_composite
 
 if __name__ == "__main__":
     register()

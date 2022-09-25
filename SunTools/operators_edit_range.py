@@ -16,10 +16,11 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from SunTools.common_functions import get_masterscene, detect_strip_type, switch_workspace, insert_clip
+from SunTools.common_functions import get_masterscene, detect_strip_type, switch_workspace, insert_clip, avail_screens
 import bpy
 import json
 import os
+
 
 # todo: support for converting old projects!
 
@@ -27,12 +28,17 @@ import os
 
 # FIXME: scene switching via linking copies the eswc_info and vice versa!
 
+# TODO: handle relative / absolute file paths correctly, so that ranges saved in the text files
+#   keep the correct reference even when moving the project
+
+NAME_RANGESCENE = 'SunTools_Edit_Range'
+
 class OperatorEditRange(bpy.types.Operator):
     bl_idname = "file.moviemanager_edit_range"
     bl_label = "Edit Range"
     bl_description = "Edit the Range of the selected clip in the File Browser. Use the new scene's Start and end Frame"
     
-    NAME_RANGESCENE = 'SunTools_Edit_Range'
+
     NAME_TEXT_RANGES = 'SunTools_Edit_Range_Ranges'
 
     def invoke (self, context, event):
@@ -46,6 +52,25 @@ class OperatorEditRange(bpy.types.Operator):
         if not params_selected_file:
             return {'CANCELLED'}
         filename = params_selected_file.filename
+
+        if bpy.context.scene.suntools_info.timeline:
+            print('MASTERSCENE')
+            masterscene.suntools_info.edit_screen = bpy.context.window.workspace.name
+
+        elif bpy.context.scene.name == NAME_RANGESCENE:
+            masterscene.suntools_info.range_screen = bpy.context.window.workspace.name
+
+        if not masterscene.suntools_info.range_screen:
+            workspaces = avail_screens()
+            workspace = workspaces[0][0]
+
+            for ws in workspaces:
+                if 'video editing' in ws[0].lower():
+                    workspace = ws[0]
+
+            masterscene.suntools_info.range_screen = workspace
+
+
 
         strip_type = detect_strip_type(filename)
         if (strip_type in ['MOVIE', 'SOUND']):
@@ -83,14 +108,14 @@ class OperatorEditRange(bpy.types.Operator):
 
     def enter_edit_range_scene(self, context, masterscene, path_source, strip_type):
         # if edit range scene exists, store the range and delete the scene
-        if self.NAME_RANGESCENE in bpy.data.scenes:
-            scene_range = bpy.data.scenes[self.NAME_RANGESCENE]
+        if NAME_RANGESCENE in bpy.data.scenes:
+            scene_range = bpy.data.scenes[NAME_RANGESCENE]
             self.store_ranges(scene_range)
             bpy.data.scenes.remove(scene_range)
 
         # create the new scene
         scene_range = self.create_new_scene_with_settings_from_masterscene(masterscene,
-                                                                           self.NAME_RANGESCENE,
+                                                                           NAME_RANGESCENE,
                                                                            path_source)
 
         # check if range for source path exists 
@@ -104,13 +129,13 @@ class OperatorEditRange(bpy.types.Operator):
         context.window.scene = scene_range
         
         # if custom layout wanted, switch layout
-        switch_workspace(masterscene.suntools_info.enum_range_screen)
+        switch_workspace(masterscene.suntools_info.range_screen)
         
     def get_text_ranges(self):
-        if self.NAME_RANGESCENE in bpy.data.texts:
-            return bpy.data.texts[self.NAME_RANGESCENE]
+        if NAME_RANGESCENE in bpy.data.texts:
+            return bpy.data.texts[NAME_RANGESCENE]
         else:
-            return bpy.data.texts.new(self.NAME_RANGESCENE)
+            return bpy.data.texts.new(NAME_RANGESCENE)
 
     def get_ranges(self):
         text_ranges = self.get_text_ranges()
@@ -188,6 +213,7 @@ class OperatorEditRange(bpy.types.Operator):
         new_scene.suntools_info.timeline = False
 
         new_scene.suntools_info.type_strip_range = detect_strip_type(source_path)
+        new_scene.name = scene_name
 
         # new_scene.render.resolution_x = masterscene.render.resolution_x
         # new_scene.render.resolution_y = masterscene.render.resolution_y
@@ -209,8 +235,11 @@ class OperatorBackToTimeline(bpy.types.Operator):
             self.report({'ERROR_INVALID_INPUT'},'Please set a Timeline first.')
             return {'CANCELLED'}
 
+        if bpy.context.scene.name == NAME_RANGESCENE:
+            masterscene.suntools_info.range_screen = bpy.context.window.workspace.name
+
         # if custom layout wanted, switch layout
-        switch_workspace(masterscene.suntools_info.enum_edit_screen)
+        switch_workspace(masterscene.suntools_info.edit_screen)
         bpy.context.window.scene = masterscene
 
         return {'FINISHED'}

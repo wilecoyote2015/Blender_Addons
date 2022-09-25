@@ -8,7 +8,6 @@ import bpy
 import subprocess
 from bpy.app.handlers import persistent
 import os
-from tempfile import TemporaryDirectory
 
 # todo: delete frames post render
 

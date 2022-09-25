@@ -17,7 +17,7 @@
 # ##### END GPL LICENSE BLOCK #####
 
 import bpy
-from CompositeVSE import common_functions
+from SunTools import common_functions
 import os
 
 # TODO: all
