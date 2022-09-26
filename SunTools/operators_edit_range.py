@@ -21,10 +21,9 @@ import bpy
 import json
 import os
 
-
-# todo: support for converting old projects!
-
-# FIXME: Ranges are not saved anymore.
+# TODO: Handle different source framerates: it should be best to use master scene fps in
+#   range scene. but does this handle the frame number correctly? Do the frame start / end etc. values
+#   os strips already handle the fps conversion between source and scene?
 
 # FIXME: scene switching via linking copies the eswc_info and vice versa!
 

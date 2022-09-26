@@ -45,6 +45,31 @@ class PanelMovieManagerBrowser(bpy.types.Panel):
         col = row.column()
         col.operator( "file.moviemanager_edit_range" )
 
+
+class PanelDarktable(bpy.types.Panel):
+    bl_space_type = "SEQUENCE_EDITOR"
+    bl_region_type = "UI"
+    bl_category = "SunTools"
+    bl_label = "Darktable"
+
+    def draw(self, context):
+        scn = context.scene
+        layout = self.layout
+        activestrip = scn.sequence_editor.active_strip
+
+        row = layout.row()
+        row.prop(scn.suntools_info, 'render_darktable')
+
+        if activestrip.type == 'MOVIE':
+            row = layout.row()
+
+            row.prop(activestrip, "use_darktable")
+            row = layout.row()
+            row.operator("sequencer.darktable_open_darktable_strip")
+            row = layout.row()
+            row.operator("sequencer.copy_darktable_style")
+
+
 class PanelMovieManager(bpy.types.Panel):
     bl_space_type = "SEQUENCE_EDITOR"
     bl_region_type = "UI"
@@ -114,7 +139,7 @@ class PanelTrimTools(bpy.types.Panel):
 class CompPanel(bpy.types.Panel):
     bl_label = "Edit strip with Compositor"
     bl_space_type = "SEQUENCE_EDITOR"
-    bl_category = "Edit Strip with Compositor"
+    bl_category = "SunTools"
     bl_region_type = "UI"
 
     def draw(self, context):
@@ -148,7 +173,7 @@ class NodePanel(bpy.types.Panel):
     bl_space_type = "NODE_EDITOR"
     bl_region_type = "UI"
     bl_label = "Edit strip with Compositor"
-    bl_category = "Edit Strip with Compositor"
+    bl_category = "SunTools"
 
     def draw(self, context):
         scn = context.scene

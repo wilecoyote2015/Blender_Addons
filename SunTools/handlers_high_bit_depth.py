@@ -8,13 +8,89 @@ import bpy
 import subprocess
 from bpy.app.handlers import persistent
 import os
+from SunTools.common_functions import get_frame_current_strip, render_current_frame_strip_to_image, check_sequence_current_darktable
+from tempfile import TemporaryDirectory
+from shutil import copyfile
 
 # todo: delete frames post render
+
+def apply_darktable_sequence(sequence, scene):
+    sequence.source_darktable = sequence.filepath
+    with TemporaryDirectory() as path_tempdir:
+        filename_image_raw = f'{sequence.name}.tif'
+        filename_output_darktable = f'img_dt.tif'
+        filename_output_darktable_video = f'{sequence.name}_dt.mov'
+        path_image_raw = str(os.path.join(path_tempdir, filename_image_raw))
+        path_image_darktable = str(os.path.join(path_tempdir, filename_output_darktable))
+
+        render_current_frame_strip_to_image(sequence, bpy.context.scene, path_image_raw)
+        path_xmp = os.path.join(path_tempdir, filename_image_raw + '.xmp')
+
+        if sequence.xmp_darktable != '':
+            with open(path_xmp, 'w') as f:
+                f.write(sequence.xmp_darktable)
+
+        # TODO: use wide-gamut color space that is also supported in blender out of the box...
+        cmd = [
+            'darktable-cli',
+            path_image_raw,
+            path_xmp,
+            path_image_darktable,
+            # '--icc-type',
+            # 'ADOBERGB'
+        ]
+        print(f'Processing image {path_image_raw} with darktable. Output: {path_image_darktable}')
+        subprocess.run(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+        subprocess.run(['ls', path_tempdir])
+        # TODO: convert via FFMPEG to Video
+
+        path_video_darktable_persistent = os.path.join(bpy.app.tempdir, filename_output_darktable_video)
+        print(f'Converting image {path_image_darktable} to video {path_video_darktable_persistent}')
+        cmd = [
+            'ffmpeg',
+            '-i',
+            path_image_darktable,
+            '-c:v',
+            'libx264',
+            '-crf',
+            '0',
+            # '-pix_fmt',
+            # 'yuv422p10le',
+            '-y',
+            # '-update',
+            # '-vframes',
+            # '1',
+            path_video_darktable_persistent
+        ]
+        subprocess.run(cmd)
+    sequence.filepath = path_video_darktable_persistent
 
 @persistent
 def render_pre_sequencer(scene):
     if scene.eswc_info.bool_use_high_bit_depth_fix:
         apply_function_compositing_scene(scene, render_pre)
+
+    # TODO: darktable
+    # TODO: Handle color spaces with darktable: in darktable-cli, use Adobe RGB output color space and
+    #   set the corresponding input color space for the strip in blender.
+    #   REMEMBER to reset the color space to previous value in post_sequencer!
+
+    # TODO: refactor into separate file
+    if scene.suntools_info.render_darktable:
+        for sequence in scene.sequence_editor.sequences_all:
+            if check_sequence_current_darktable(sequence, scene):
+                apply_darktable_sequence(sequence, scene)
+
+
+
+@persistent
+def render_post_sequencer(scene):
+    # TODO: darktable: reset sources of strips
+    if scene.suntools_info.render_darktable:
+        for sequence in scene.sequence_editor.sequences_all:
+            if check_sequence_current_darktable(sequence, scene):
+                sequence.filepath = sequence.source_darktable
 
 @persistent
 def render_post_compositor(scene):
@@ -215,6 +291,7 @@ def get_dir_output():
 def register_handlers():
     bpy.app.handlers.render_pre.append(render_pre_sequencer)
     bpy.app.handlers.render_post.append(render_post_compositor)
+    bpy.app.handlers.render_post.append(render_post_sequencer)
     bpy.app.handlers.render_cancel.append(render_post_compositor)
         
 def unregister_handlers():

@@ -19,12 +19,40 @@
 import bpy
 import os
 from SunTools.constants import *
+from subprocess import run
 
 # TODO: cleanup Suntools Comp VSE Merge
+
+def check_sequence_current_darktable(strip, scene):
+    # TODO: correct boundaries?
+    has_playhead =  scene.frame_current >= strip.frame_final_start and scene.frame_current <= strip.frame_final_end
+    return getattr(strip, 'xmp_darktable', None) and strip.use_darktable and has_playhead
 
 def switch_screen(context, eswc_screen):
     bpy.context.window.workspace = bpy.data.workspaces[eswc_screen]
 
+def render_current_frame_strip_to_image(strip, scene, path_output):
+    frame_current = get_frame_current_strip(strip, scene)
+    cmd = [
+        'ffmpeg',
+        '-i',
+        bpy.path.abspath(strip.filepath),
+        '-start_number',
+        str(frame_current),
+
+        '-vf',
+        r'select=eq(n\,' + str(frame_current) + ')',
+        # str(frame_current +1),
+        '-vframes',
+        '1',
+        path_output
+    ]
+    print(cmd)
+    run(cmd)
+
+def get_frame_current_strip(strip, scene):
+    """0-indexed!"""
+    return int(max(min(scene.frame_current - strip.frame_start, strip.frame_duration), 0))
 
 def select_only_strip(strip):
     # deselect all strips and select only the composite strip

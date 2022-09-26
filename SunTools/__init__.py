@@ -41,7 +41,8 @@ from SunTools.ui_panels import (
     PanelMovieManager,
     PanelTrimTools,
     NodePanel,
-    CompPanel
+    CompPanel,
+    PanelDarktable
 )
 from SunTools.handlers_high_bit_depth import register_handlers, unregister_handlers
 from SunTools.operator_composition import OperatorCreateCompositionFromStrip
@@ -49,6 +50,10 @@ from SunTools.operators_navigation import (
     Switch_back_to_Timeline_Operator,
     Switch_to_Composite_Nodepanel_Operator,
     Switch_to_Composite_Operator
+)
+from SunTools.operators_darktable import (
+    OperatorOpenDarktable,
+OperatorCopyDarktableStyle
 )
 from SunTools.scene_types import SunToolsInfo, ESWC_Info
 
@@ -83,12 +88,15 @@ classes = (
     PanelMovieManagerBrowser,
     PanelMovieManager,
     PanelTrimTools,
+    PanelDarktable,
     CompPanel,
     NodePanel,
     Switch_to_Composite_Operator,
     Switch_to_Composite_Nodepanel_Operator,
     Switch_back_to_Timeline_Operator,
-    OperatorCreateCompositionFromStrip
+    OperatorCreateCompositionFromStrip,
+    OperatorOpenDarktable,
+OperatorCopyDarktableStyle
 )
 
 register_classes, unregister_classes = bpy.utils.register_classes_factory(classes)
@@ -99,6 +107,22 @@ def register():
         description='Whether the Meta Strip corresponds to Node Composition',
         default=False
     )
+    bpy.types.MovieSequence.use_darktable = bpy.props.BoolProperty(
+        name='Use Darktable',
+        description='Use Darktable for color correction',
+        default=False
+    )
+    bpy.types.MovieSequence.xmp_darktable = bpy.props.StringProperty(
+        name='Darktable XMP',
+        description='Parsed Darktable XMP',
+        default=''
+    )
+    bpy.types.MovieSequence.source_darktable = bpy.props.StringProperty(
+        name='Source',
+        description='Source of Strip. Only used temporarily during render.',
+        default=''
+    )
+
     register_classes()
     bpy.types.Scene.suntools_info = bpy.props.PointerProperty(type=SunToolsInfo)
     bpy.types.Scene.eswc_info = bpy.props.PointerProperty(type=ESWC_Info)

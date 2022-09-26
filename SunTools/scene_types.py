@@ -229,3 +229,8 @@ class SunToolsInfo(bpy.types.PropertyGroup):
     select_audio: BoolProperty( name="Select Audio",
                                          description = "Select appropriate audio strips, too? ",
                                          default=True )
+    render_darktable: BoolProperty(
+        name='Render with Darktable',
+        description='Whether to render Strips edited with darktable with darktable',
+        default=False
+    )
