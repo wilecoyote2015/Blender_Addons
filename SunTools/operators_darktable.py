@@ -24,8 +24,6 @@ from subprocess import run
 from tempfile import TemporaryDirectory
 from SunTools.common_functions import render_current_frame_strip_to_image
 
-
-
 # TODO: Support loading / saving xmp files per strip.
 #   maybe, when loading xmp file, do not store the xmp as string, but simply refer to
 #   filepath

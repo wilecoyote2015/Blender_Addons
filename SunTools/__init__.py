@@ -122,6 +122,14 @@ def register():
         description='Source of Strip. Only used temporarily during render.',
         default=''
     )
+    bpy.types.MovieSequence.frame_final_start_darktable = bpy.props.IntProperty(
+        name='Frame Final Start',
+        default=0
+    )
+    bpy.types.MovieSequence.frame_final_end_darktable = bpy.props.IntProperty(
+        name='Frame Final End',
+        default=0
+    )
 
     register_classes()
     bpy.types.Scene.suntools_info = bpy.props.PointerProperty(type=SunToolsInfo)

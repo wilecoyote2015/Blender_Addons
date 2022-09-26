@@ -16,6 +16,8 @@ from shutil import copyfile
 
 def apply_darktable_sequence(sequence, scene):
     sequence.source_darktable = sequence.filepath
+    sequence.frame_final_start_darktable = sequence.frame_final_start
+    sequence.frame_final_end_darktable = sequence.frame_final_end
     with TemporaryDirectory() as path_tempdir:
         filename_image_raw = f'{sequence.name}.tif'
         filename_output_darktable = f'img_dt.tif'
@@ -91,6 +93,8 @@ def render_post_sequencer(scene):
         for sequence in scene.sequence_editor.sequences_all:
             if check_sequence_current_darktable(sequence, scene):
                 sequence.filepath = sequence.source_darktable
+                sequence.frame_final_start = sequence.frame_final_start_darktable
+                sequence.frame_final_end = sequence.frame_final_end_darktable
 
 @persistent
 def render_post_compositor(scene):
