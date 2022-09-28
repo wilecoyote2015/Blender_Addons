@@ -76,10 +76,10 @@ def apply_darktable_sequence(sequence, scene):
         ]
         subprocess.run(cmd)
 
-        shutil.copyfile(path_image_raw, '/home/bjoern/Videos/hrw/renders/flicker_raw.tif')
-        shutil.copyfile(path_xmp, '/home/bjoern/Videos/hrw/renders/flicker_raw.tif.xmp')
-        shutil.copyfile(path_image_darktable, '/home/bjoern/Videos/hrw/renders/flicker_processed.tif')
-        shutil.copyfile(path_video_darktable_persistent, '/home/bjoern/Videos/hrw/renders/flicker_video.mkv')
+        # shutil.copyfile(path_image_raw, '/home/bjoern/Videos/hrw/renders/flicker_raw.tif')
+        # shutil.copyfile(path_xmp, '/home/bjoern/Videos/hrw/renders/flicker_raw.tif.xmp')
+        # shutil.copyfile(path_image_darktable, '/home/bjoern/Videos/hrw/renders/flicker_processed.tif')
+        # shutil.copyfile(path_video_darktable_persistent, '/home/bjoern/Videos/hrw/renders/flicker_video.mkv')
     sequence.filepath = path_video_darktable_persistent
     sequence.frame_final_start = sequence.frame_final_start_darktable
     sequence.frame_final_end = sequence.frame_final_end_darktable
