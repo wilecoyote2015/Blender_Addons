@@ -108,7 +108,7 @@ def register():
         default=False
     )
     bpy.types.MovieSequence.use_darktable = bpy.props.BoolProperty(
-        name='Use Darktable',
+        name='Use Darktable for Strip',
         description='Use Darktable for color correction',
         default=False
     )
@@ -129,6 +129,23 @@ def register():
     bpy.types.MovieSequence.frame_final_end_darktable = bpy.props.IntProperty(
         name='Frame Final End',
         default=0
+    )
+    bpy.types.MovieSequence.frame_offset_start_darktable = bpy.props.FloatProperty(
+        name='Frame Offset Start',
+        default=0
+    )
+
+    bpy.types.MovieSequence.frame_final_start_darktable_set = bpy.props.BoolProperty(
+        name='Frame Final Start Set',
+        default=False
+    )
+    bpy.types.MovieSequence.frame_final_end_darktable_set = bpy.props.BoolProperty(
+        name='Frame Final End Set',
+        default=False
+    )
+    bpy.types.MovieSequence.frame_offset_start_darktable_set = bpy.props.BoolProperty(
+        name='Frame Offset Start Set',
+        default=False
     )
 
     register_classes()

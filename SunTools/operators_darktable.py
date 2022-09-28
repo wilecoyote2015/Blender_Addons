@@ -28,6 +28,17 @@ from SunTools.common_functions import render_current_frame_strip_to_image
 #   maybe, when loading xmp file, do not store the xmp as string, but simply refer to
 #   filepath
 
+# TODO: Option to define custom .conf dir so that it can be saved with the project directory
+#   and ensures reproductibility across systems.
+
+# FIXME: Sometimes, strip positions and start frames get messed up during rendering.
+#   seems to happen when cancelling render at certain points. Tried to register render cancel handler,
+#   but did not solve the issue
+#   try to set start and end frame directly again in pre_render after assigning new source
+#   Update: done now. Seems to work for correct rendering, but strip display still glitches and
+#   if rendering is aborted, often even the source file is not changed back from temporary file to original source.
+#   is the render abort handler not called properly?
+
 class OperatorOpenDarktable(bpy.types.Operator):
     bl_idname = "sequencer.darktable_open_darktable_strip"
     bl_label = "Edit with Darktable"

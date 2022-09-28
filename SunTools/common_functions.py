@@ -26,25 +26,43 @@ from subprocess import run
 def check_sequence_current_darktable(strip, scene):
     # TODO: correct boundaries?
     has_playhead =  scene.frame_current >= strip.frame_final_start and scene.frame_current <= strip.frame_final_end
-    return getattr(strip, 'xmp_darktable', None) and strip.use_darktable and has_playhead
+    return getattr(strip, 'xmp_darktable', None) and strip.use_darktable and has_playhead and not strip.mute
 
 def switch_screen(context, eswc_screen):
     bpy.context.window.workspace = bpy.data.workspaces[eswc_screen]
 
 def render_current_frame_strip_to_image(strip, scene, path_output):
     frame_current = get_frame_current_strip(strip, scene)
+    seconds_current = frame_current / strip.fps
+    # cmd = [
+    #     'ffmpeg',
+    #     '-i',
+    #     bpy.path.abspath(strip.filepath),
+    #     '-start_number',
+    #     str(frame_current),
+    #
+    #     '-vf',
+    #     r'select=eq(n\,' + str(frame_current) + ')',
+    #     # str(frame_current +1),
+    #     '-vframes',
+    #     '1',
+    #     path_output
+    # ]
     cmd = [
         'ffmpeg',
+        '-ss',
+        f'{seconds_current}',
         '-i',
         bpy.path.abspath(strip.filepath),
-        '-start_number',
-        str(frame_current),
-
-        '-vf',
-        r'select=eq(n\,' + str(frame_current) + ')',
-        # str(frame_current +1),
+        # '-start_number',
+        # str(frame_current),
+        #
+        # '-vf',
+        # r'select=eq(n\,' + str(frame_current) + ')',
+        # # str(frame_current +1),
         '-vframes',
         '1',
+          '-y',
         path_output
     ]
     print(cmd)
@@ -52,7 +70,7 @@ def render_current_frame_strip_to_image(strip, scene, path_output):
 
 def get_frame_current_strip(strip, scene):
     """0-indexed!"""
-    return int(max(min(scene.frame_current - strip.frame_start, strip.frame_duration), 0))
+    return int(max(min(scene.frame_current - strip.frame_start, strip.frame_duration-1), 0))
 
 def select_only_strip(strip):
     # deselect all strips and select only the composite strip

@@ -8,7 +8,7 @@ import bpy
 import subprocess
 from bpy.app.handlers import persistent
 import os
-from SunTools.common_functions import get_frame_current_strip, render_current_frame_strip_to_image, check_sequence_current_darktable
+from SunTools.common_functions import render_current_frame_strip_to_image, check_sequence_current_darktable
 from tempfile import TemporaryDirectory
 from shutil import copyfile
 
@@ -18,6 +18,11 @@ def apply_darktable_sequence(sequence, scene):
     sequence.source_darktable = sequence.filepath
     sequence.frame_final_start_darktable = sequence.frame_final_start
     sequence.frame_final_end_darktable = sequence.frame_final_end
+    sequence.frame_offset_start_darktable = sequence.frame_offset_start
+
+    sequence.frame_final_start_darktable_set = True
+    sequence.frame_final_end_darktable_set = True
+    sequence.frame_offset_start_darktable_set = True
     with TemporaryDirectory() as path_tempdir:
         filename_image_raw = f'{sequence.name}.tif'
         filename_output_darktable = f'img_dt.tif'
@@ -57,6 +62,8 @@ def apply_darktable_sequence(sequence, scene):
             'libx264',
             '-crf',
             '0',
+            '-preset',
+            'ultrafast',
             # '-pix_fmt',
             # 'yuv422p10le',
             '-y',
@@ -67,6 +74,9 @@ def apply_darktable_sequence(sequence, scene):
         ]
         subprocess.run(cmd)
     sequence.filepath = path_video_darktable_persistent
+    sequence.frame_final_start = sequence.frame_final_start_darktable
+    sequence.frame_final_end = sequence.frame_final_end_darktable
+    sequence.frame_offset_start = sequence.frame_offset_start_darktable
 
 @persistent
 def render_pre_sequencer(scene):
@@ -93,8 +103,13 @@ def render_post_sequencer(scene):
         for sequence in scene.sequence_editor.sequences_all:
             if check_sequence_current_darktable(sequence, scene):
                 sequence.filepath = sequence.source_darktable
-                sequence.frame_final_start = sequence.frame_final_start_darktable
-                sequence.frame_final_end = sequence.frame_final_end_darktable
+                if sequence.frame_final_start_darktable_set and sequence.frame_final_end_darktable_set:
+                    sequence.frame_final_start = sequence.frame_final_start_darktable
+                    sequence.frame_final_end = sequence.frame_final_end_darktable
+                    sequence.frame_offset_start = sequence.frame_offset_start_darktable
+                    sequence.frame_final_start_darktable_set = False
+                    sequence.frame_final_end_darktable_set = False
+                    sequence.frame_offset_start_darktable_set = False
 
 @persistent
 def render_post_compositor(scene):
@@ -297,9 +312,12 @@ def register_handlers():
     bpy.app.handlers.render_post.append(render_post_compositor)
     bpy.app.handlers.render_post.append(render_post_sequencer)
     bpy.app.handlers.render_cancel.append(render_post_compositor)
-        
+    bpy.app.handlers.render_cancel.append(render_post_sequencer)
+
 def unregister_handlers():
     bpy.app.handlers.render_pre.remove(render_pre_sequencer)
     bpy.app.handlers.render_post.remove(render_post_compositor)
+    bpy.app.handlers.render_post.remove(render_post_sequencer)
     bpy.app.handlers.render_cancel.remove(render_post_compositor)
+    bpy.app.handlers.render_cancel.remove(render_post_sequencer)
 
