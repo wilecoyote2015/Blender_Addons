@@ -34,32 +34,23 @@ def switch_screen(context, eswc_screen):
 def render_current_frame_strip_to_image(strip, scene, path_output):
     frame_current = get_frame_current_strip(strip, scene)
     seconds_current = frame_current / strip.fps
-    # cmd = [
-    #     'ffmpeg',
-    #     '-i',
-    #     bpy.path.abspath(strip.filepath),
-    #     '-start_number',
-    #     str(frame_current),
-    #
-    #     '-vf',
-    #     r'select=eq(n\,' + str(frame_current) + ')',
-    #     # str(frame_current +1),
-    #     '-vframes',
-    #     '1',
-    #     path_output
-    # ]
+
+    # Workaround for inaccurate input frame seeking with ffmpeg at some frames:
+    #   use rough input frame seeking and then perform finer seeking for output.
+    #   this way, decoding the whole video is still avoided.
+    #   TODO: verify that this works properly
+    position_start_miliseconds = int(round(seconds_current * 1e3))
+    n_seconds_input, position_seek_output_miliseconds = divmod(position_start_miliseconds, 1000)
+
     cmd = [
         'ffmpeg',
         '-ss',
-        f'{seconds_current}',
+        str(n_seconds_input),
+        # f'{int(round(seconds_current*1e3))}ms',
         '-i',
         bpy.path.abspath(strip.filepath),
-        # '-start_number',
-        # str(frame_current),
-        #
-        # '-vf',
-        # r'select=eq(n\,' + str(frame_current) + ')',
-        # # str(frame_current +1),
+        '-ss',
+        f'{position_seek_output_miliseconds}ms',
         '-vframes',
         '1',
           '-y',

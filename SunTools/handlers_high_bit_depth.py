@@ -43,6 +43,8 @@ def apply_darktable_sequence(sequence, scene):
             path_image_raw,
             path_xmp,
             path_image_darktable,
+            '--core',
+            '--disable-opencl',
             # '--icc-type',
             # 'ADOBERGB'
         ]
@@ -62,8 +64,8 @@ def apply_darktable_sequence(sequence, scene):
             'libx264',
             '-crf',
             '0',
-            '-preset',
-            'ultrafast',
+            # '-preset',
+            # 'ultrafast',
             # '-pix_fmt',
             # 'yuv422p10le',
             '-y',
@@ -73,6 +75,11 @@ def apply_darktable_sequence(sequence, scene):
             path_video_darktable_persistent
         ]
         subprocess.run(cmd)
+
+        shutil.copyfile(path_image_raw, '/home/bjoern/Videos/hrw/renders/flicker_raw.tif')
+        shutil.copyfile(path_xmp, '/home/bjoern/Videos/hrw/renders/flicker_raw.tif.xmp')
+        shutil.copyfile(path_image_darktable, '/home/bjoern/Videos/hrw/renders/flicker_processed.tif')
+        shutil.copyfile(path_video_darktable_persistent, '/home/bjoern/Videos/hrw/renders/flicker_video.mkv')
     sequence.filepath = path_video_darktable_persistent
     sequence.frame_final_start = sequence.frame_final_start_darktable
     sequence.frame_final_end = sequence.frame_final_end_darktable
@@ -93,8 +100,6 @@ def render_pre_sequencer(scene):
         for sequence in scene.sequence_editor.sequences_all:
             if check_sequence_current_darktable(sequence, scene):
                 apply_darktable_sequence(sequence, scene)
-
-
 
 @persistent
 def render_post_sequencer(scene):
