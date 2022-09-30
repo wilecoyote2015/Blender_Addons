@@ -61,9 +61,10 @@ from .scene_types import SunToolsInfo, ESWC_Info
 
 bl_info = {
     "name": "SunTools",
-    "description": "Define in- and outpoints of your material in the file browser",
+    "description": "Tools for trimming sequences, range preview, sending vse strips to compositor "
+                   "and using darktable for color grading",
     "author": "Carlos Padial, TMW, Björn Sonnenschein",
-    "version": (1, 4),
+    "version": (1, 0),
     "blender": (3, 3, 0),
     "location": "File Browser > Tools, Sequencer > UI panel, Node Editor > UI panel",
     "wiki_url": "None Yet"
