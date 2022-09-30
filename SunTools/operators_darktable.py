@@ -40,6 +40,8 @@ from bpy_extras.io_utils import ExportHelper, ImportHelper
 #   if rendering is aborted, often even the source file is not changed back from temporary file to original source.
 #   is the render abort handler not called properly?
 
+# TODO: option for color space selection
+
 class OperatorOpenDarktable(bpy.types.Operator):
     bl_idname = "sequencer.darktable_open_darktable_strip"
     bl_label = "Edit with Darktable"
