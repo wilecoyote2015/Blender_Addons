@@ -1,0 +1,292 @@
+# ##### BEGIN GPL LICENSE BLOCK #####
+#
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License
+#  as published by the Free Software Foundation; either version 2
+#  of the License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software Foundation,
+#  Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# ##### END GPL LICENSE BLOCK #####
+
+# todo: hiding must be revised completely.
+#   Store good in json and also change paths in Json!
+
+import bpy
+import os
+from .common_functions import get_masterscene, detect_strip_type
+
+class OperatorSetTimeline (bpy.types.Operator):
+    bl_idname = "sequencer.moviemanager_set_timeline"
+    bl_label = "Set as Timeline"
+    bl_description = "Set this scene as Timeline"
+
+    def invoke (self, context, event):
+        for i in bpy.data.scenes:
+            i.suntools_info.timeline = False
+
+        bpy.context.scene.suntools_info.timeline = True
+
+        return {'FINISHED'}
+
+# todo: the operator must be updated for the edit range text storage.
+# class OperatorHideSequences (bpy.types.Operator):
+#     bl_idname = "sequencer.moviemanager_hide"
+#     bl_label = "Hide"
+#     bl_description = "Hide clips that are not useful"
+#
+#     def invoke (self, context, event):
+#         ranges = common_functions.get_ranges()
+#
+#         # rename the files in filesystem
+#         for filepath, ranges in ranges.keys():
+#
+#
+#         # rename the files in the ranges store
+#
+#
+#         for scene_clip in bpy.data.scenes:
+#             source_path = scene_clip.suntools_info.source_path
+#             if (source_path != "none"):
+#                 self.hide_file(source_path, scene_clip)
+#
+#         return {'FINISHED'}
+#
+#     def hide_file(self, filepath, scene_clip):
+#         path_directory, filename = os.path.split(filepath)
+#
+#         changed = False
+#         if (filename[0] == "." and scene_clip.good_clip == True):
+#             filename_new = filename[1:]
+#             changed = True
+#         elif (filename[0] != "." and scene_clip.good_clip == False):
+#             filename_new = "." + filename
+#             changed = True
+#         if (changed == True):
+#             filepath_new = path_directory + filename_new
+#             os.rename(filepath, filepath_new)
+#
+#             for sequence_scene in bpy.data.scenes:
+#                 if (sequence_scene.suntools_info.source_path == filepath):
+#                     sequence_scene.suntools_info.source_path = filepath_new
+#                 try:
+#                     for sequence in sequence_scene.sequence_editor.sequences_all:
+#                         if (sequence.filepath == bpy.path.relpath(filepath)):
+#                             sequence.filepath = bpy.path.relpath(filepath_new)
+#                 except:
+#                     pass
+
+
+class OperatorCreateProxies(bpy.types.Operator):
+    """ Automatically create proxies with given settings for all strips in the directory
+    """
+    bl_idname = "file.moviemanager_proxy"
+    bl_label = "Create Proxies"
+
+    current_strip = bpy.props.StringProperty(name='Processing File:')
+
+    # def execute(self, context):
+    #     message = f'{self.current_strip}'
+    #     self.report({'INFO'}, message)
+    #     return {'FINISHED'}
+
+    def invoke(self, context, event ):
+
+        # wm = context.window_manager
+        # wm.invoke_popup(self)
+
+        name_scene_current = bpy.context.scene.name
+        
+        masterscene = get_masterscene()
+        if (masterscene is None):
+            self.report({'ERROR_INVALID_INPUT'},'Please set a Timeline first.')
+            return {'CANCELLED'}
+
+        if (masterscene.suntools_info.p50 == False
+                and masterscene.suntools_info.p25 == False
+                and masterscene.suntools_info.p75 == False
+                and masterscene.suntools_info.p100 == False ):
+            print(masterscene.suntools_info.p25)
+            self.report({'ERROR_INVALID_INPUT'},'No Proxies to create!.')
+            return {'CANCELLED'}
+
+        #get directory
+        for a in context.window.screen.areas:
+            if a.type == 'FILE_BROWSER':
+                directory = a.spaces[0].params.directory
+                break
+        try:
+            directory
+        except:
+            self.report({'ERROR_INVALID_INPUT'}, 'No visible File Browser')
+            return {'CANCELLED'}
+
+        #Change the current area to VSE so that we can also call the operator from any other area type.
+        bool_IsVSE = True
+        native_area_type = 'SEQUENCE_EDITOR'
+        if (bpy.context.area.type != 'SEQUENCE_EDITOR'):
+            native_area_type = bpy.context.area.type
+            bpy.context.area.type = 'SEQUENCE_EDITOR'
+            bool_IsVSE = False
+
+        # store whether to search files recursively from current scene, as qID will have it
+        # set to False
+        proxy_recursive = bpy.context.scene.suntools_info.proxy_recursive
+
+        #Check if scene exists, if not -> new
+        self.switch_to_scene(scene_name='qID')
+
+        ## Get files in directory
+        if proxy_recursive:
+            filepaths = []
+            for root, dirs, files in os.walk(directory):
+                # only add files if they are not in a proxy directory
+                if os.path.dirname(root) != 'BL_proxy':
+                    filepaths.extend([os.path.join(root, f) for f in files])
+        else:
+            filepaths = [ os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory,f)) ]
+
+        self.report({'INFO'}, 'Generating Proxies. Blender freezes until job is finished.')
+
+        for path in filepaths:
+            filename = os.path.basename(path).decode()
+            strip_type = detect_strip_type(filename)
+
+            if (strip_type == 'MOVIE'):
+                print('creating proxy for {}'.format(path))
+                bpy.ops.sequencer.movie_strip_add(filepath=path)
+                for sequence in bpy.context.scene.sequence_editor.sequences:
+                    if (sequence.type == 'MOVIE'):
+                        sequence.use_proxy = True
+                        sequence.proxy.build_25 = masterscene.suntools_info.p25
+                        sequence.proxy.build_50 = masterscene.suntools_info.p50
+                        sequence.proxy.build_75 = masterscene.suntools_info.p75
+                        sequence.proxy.build_100 = masterscene.suntools_info.p100
+                        # if (masterscene.suntools_info.p25 == True):
+                        #     sequence.proxy.build_25 = True
+                        # if (masterscene.suntools_info.p50 == True):
+                        #     sequence.proxy.build_50 = True
+                        # if (masterscene.suntools_info.p75 == True):
+                        #     sequence.proxy.build_75 = True
+                        # if (masterscene.suntools_info.p100 == True):
+                        #     sequence.proxy.build_100 = True
+
+                    self.report({'INFO'}, f'Generating Proxy for strip {sequence.name}.')
+                    # bpy.ops.sequencer.select_all(action='DESELECT')
+                    sequence.select = True
+                    # self.current_strip = sequence.name
+                    try:
+                        bpy.ops.sequencer.rebuild_proxy()
+                    except:
+                        pass
+                    # strip.select = False
+                    bpy.ops.sequencer.select_all(action='SELECT')
+                    bpy.ops.sequencer.delete()
+
+
+        # strips_created = self.create_strips_and_set_proxy_settings(masterscene, filepaths)
+
+
+        else:
+            self.report({'INFO'},'No video files found.')
+
+        if (bool_IsVSE == False):
+            bpy.context.area.type = native_area_type
+
+        #OperatorToTimeline.invoke(self, context, event
+        # switch back to initial scene
+        self.switch_to_scene(scene_name=name_scene_current)
+
+        self.report({'INFO'}, 'Finished proxy generation.')
+
+        return {'FINISHED'}
+
+    def check(self, context):
+        return True
+
+    def switch_to_scene(self, scene_name):
+        """ If a scene of given name does not exist, create it. Then switch context to the scene
+        
+        :param scene_name: Name of the scene
+        :return: 
+        """
+        scene_exists = False
+        for i in bpy.data.scenes:
+            if i.name == scene_name:
+                scene_exists = True
+
+        if (scene_exists == True):
+            bpy.context.window.scene = bpy.data.scenes[scene_name]
+        else:
+            new_scene = bpy.data.scenes.new(scene_name)
+
+        scene = bpy.data.scenes[scene_name]
+        bpy.context.window.scene = scene
+
+    # def draw(self, context):
+    #     layout = self.layout
+    #     col = layout.column()
+    #     # layout.label(self.current_strip)
+    #     col.prop(self, "current_strip")
+
+    def create_strips_and_set_proxy_settings(self, masterscene, filepaths):
+        strips_created = False
+        for path in filepaths:
+            filename = os.path.basename(path).decode()
+            strip_type = detect_strip_type(filename)
+
+            if (strip_type == 'MOVIE'):
+                print('creating proxy for {}'.format(path))
+                strips_created = True
+                bpy.ops.sequencer.movie_strip_add(filepath=path)
+                for sequence in bpy.context.scene.sequence_editor.sequences:
+                    if (sequence.type == 'MOVIE'):
+                        sequence.use_proxy = True
+                        if (masterscene.suntools_info.p25 == True):
+                            sequence.proxy.build_25 = True
+                        if (masterscene.suntools_info.p50 == True):
+                            sequence.proxy.build_50 = True
+                        if (masterscene.suntools_info.p75 == True):
+                            sequence.proxy.build_75 = True
+                        if (masterscene.suntools_info.p100 == True):
+                            sequence.proxy.build_100 = True
+
+        return strips_created
+
+class OperatorUnmeta(bpy.types.Operator):
+    bl_idname = "sequencer.moviemanager_unmeta"
+    bl_label = "Unmeta"
+    bl_description = "Unmeta and trim all containing strip so meta strip"
+
+    def invoke(self, context, event):
+        for meta_strip in bpy.context.selected_sequences:
+            if (meta_strip.type == 'META'):
+                channel = meta_strip.channel
+                self.separate_meta_strip(meta_strip)
+                self.apply_meta_strip_channel(channel)
+        return {'FINISHED'}
+
+    def separate_meta_strip(self, meta_strip):
+        frame_final_start = meta_strip.frame_final_start
+        frame_final_end = meta_strip.frame_final_end
+        bpy.ops.sequencer.select_all(action='DESELECT')
+        meta_strip.select = True
+        bpy.context.scene.sequence_editor.active_strip = meta_strip
+        bpy.ops.sequencer.meta_separate()
+        for sequence_from_meta in bpy.context.selected_sequences:
+            sequence_from_meta.frame_final_start = frame_final_start
+            sequence_from_meta.frame_final_end = frame_final_end
+
+    def apply_meta_strip_channel(self, channel):
+        for sequence_from_meta in reversed(bpy.context.selected_sequences):
+            if (sequence_from_meta.type == 'MOVIE'):
+                sequence_from_meta.channel = channel
+            else:
+                sequence_from_meta.channel = channel + 1
