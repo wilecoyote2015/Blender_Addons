@@ -68,6 +68,12 @@ class PanelDarktable(bpy.types.Panel):
             row.operator("sequencer.darktable_open_darktable_strip")
             row = layout.row()
             row.operator("sequencer.copy_darktable_style")
+            row = layout.row()
+            col = row.column()
+            col.operator('sequencer.load_darktable_style')
+            col = row.column()
+            col.operator('sequencer.save_darktable_style')
+
 
 
 class PanelMovieManager(bpy.types.Panel):

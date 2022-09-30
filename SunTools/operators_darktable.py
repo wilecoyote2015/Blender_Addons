@@ -23,6 +23,7 @@ import os
 from subprocess import run
 from tempfile import TemporaryDirectory
 from SunTools.common_functions import render_current_frame_strip_to_image
+from bpy_extras.io_utils import ExportHelper, ImportHelper
 
 # TODO: Support loading / saving xmp files per strip.
 #   maybe, when loading xmp file, do not store the xmp as string, but simply refer to
@@ -42,6 +43,10 @@ from SunTools.common_functions import render_current_frame_strip_to_image
 class OperatorOpenDarktable(bpy.types.Operator):
     bl_idname = "sequencer.darktable_open_darktable_strip"
     bl_label = "Edit with Darktable"
+    bl_description = "Open the Strip in Darktable for color grading. " \
+                     "IMPORTANT: There must not be a running Darktable instance before using the operator." \
+                     "Darktable must be closed when Editing is finished. Blender Freezes until Darktable is closed." \
+                     "Darktable and ffmpeg must be in your PATH."
 
     def invoke(self, context, event ):
         # render the current frame of selected strip via FFMPEG
@@ -75,12 +80,68 @@ class OperatorOpenDarktable(bpy.types.Operator):
 class OperatorCopyDarktableStyle(bpy.types.Operator):
     bl_idname = "sequencer.copy_darktable_style"
     bl_label = "Transfer darktable style."
+    bl_description = "Transfer Darktable style from active strip to all selected strips"
 
     def invoke(self, context, event ):
         # render the current frame of selected strip via FFMPEG
         current_strip = bpy.context.scene.sequence_editor.active_strip
         for sequence in bpy.context.scene.sequence_editor.sequences:
-            if sequence.selected and sequence.type == 'MOVIE':
+            if sequence.select and sequence.type == 'MOVIE':
                 sequence.xmp_darktable = current_strip.xmp_darktable
+
+        return {'FINISHED'}
+
+class OperatorLoadXmpDarktable(bpy.types.Operator, ImportHelper):
+    bl_idname = "sequencer.load_darktable_style"
+    bl_label = "Load XMP"
+    bl_description = "Load XMP and apply it to all selected strips"
+
+    filepath = bpy.props.StringProperty()
+
+    filename_ext = ".xmp"
+
+    filter_glob: bpy.props.StringProperty(
+        default="*.xmp",
+        options={'HIDDEN'},
+        maxlen=255,  # Max internal buffer length, longer would be clamped.
+    )
+
+    def execute(self, context):
+        with open(str(self.filepath)) as f:
+            xmp = f.read()
+
+        for sequence in bpy.context.scene.sequence_editor.sequences:
+            if sequence.select and sequence.type == 'MOVIE':
+                sequence.xmp_darktable = xmp
+
+        return {'FINISHED'}
+
+    def invoke(self, context, event):
+        context.window_manager.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
+class OperatorSaveXmpDarktable(bpy.types.Operator, ExportHelper):
+    bl_idname = "sequencer.save_darktable_style"
+    bl_label = "Save XMP"
+    bl_description = "Save the XMP of the active strip to file"
+
+    filename_ext = ".xmp"
+
+    filter_glob: bpy.props.StringProperty(
+        default="*.xmp",
+        options={'HIDDEN'},
+        maxlen=255,  # Max internal buffer length, longer would be clamped.
+    )
+    def execute(self, context):
+        current_strip = bpy.context.scene.sequence_editor.active_strip
+        if current_strip:
+            if current_strip.xmp_darktable == '':
+                raise ValueError('Active Strip has no Darktable data.')
+            print(os.path.splitext(self.filepath)[0] + '.xmp')
+            with open(os.path.splitext(str(self.filepath))[0] + '.xmp', 'w') as f:
+                f.write(current_strip.xmp_darktable)
+        else:
+            raise ValueError('No active strip.')
+
 
         return {'FINISHED'}

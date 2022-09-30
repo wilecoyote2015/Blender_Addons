@@ -53,7 +53,9 @@ from SunTools.operators_navigation import (
 )
 from SunTools.operators_darktable import (
     OperatorOpenDarktable,
-OperatorCopyDarktableStyle
+    OperatorCopyDarktableStyle,
+    OperatorLoadXmpDarktable,
+    OperatorSaveXmpDarktable,
 )
 from SunTools.scene_types import SunToolsInfo, ESWC_Info
 
@@ -96,7 +98,9 @@ classes = (
     Switch_back_to_Timeline_Operator,
     OperatorCreateCompositionFromStrip,
     OperatorOpenDarktable,
-OperatorCopyDarktableStyle
+    OperatorLoadXmpDarktable,
+    OperatorSaveXmpDarktable,
+    OperatorCopyDarktableStyle
 )
 
 register_classes, unregister_classes = bpy.utils.register_classes_factory(classes)

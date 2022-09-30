@@ -231,6 +231,6 @@ class SunToolsInfo(bpy.types.PropertyGroup):
                                          default=True )
     render_darktable: BoolProperty(
         name='Render with Darktable',
-        description='Whether to render Strips edited with darktable with darktable',
+        description='Whether to render Strips edited with darktable with darktable. darktable-cli and ffmpeg must be in your PATH.',
         default=False
     )
