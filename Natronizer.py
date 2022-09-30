@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-####TODO: Rendering.....
+####TODO: Update
 
 bl_info = {
     "name": "Natronizer",

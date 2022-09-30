@@ -1,3 +1,4 @@
+# TODO: Update!
 keyconfig_data = \
 [("View2D",
   {"space_type": 'EMPTY', "region_type": 'WINDOW'},

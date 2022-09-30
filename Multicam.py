@@ -16,6 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
+# TODO: Update!
 
 bl_info = {
     "name": "Multicam Tools",
