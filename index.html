@@ -60,10 +60,10 @@
 
 <h1><a id="edit-strip-with-compositor" class="anchor" href="#edit-strip-with-compositor" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Edit Strip with Compositor</h1>
 
-<p>The color grading and compositing features in the VSE are rudimentary while Blender comes with a great nodal compositor that cannot be used in the sequencer directly. What a pity!
+<p>The color grading and compositing features in the VSE are rudimentary while Blender comes with a great nodal compositor that cannot be used in the sequencer directly.
 This addon tries to unleash Blender's great grading capabilities by offering a way to grade sequencer clips in the nodal compositor.
 The initial Addon had been written by TMW in the Blender Artists community and for some time, Carlos Padial and I are trying to further improve the script. You can follow the Development <a href="https://blenderartists.org/forum/showthread.php?221567-Edit-strip-with-compositor">here</a>.</p>
-<p><b>Usage:</b> The addon's interface provides two menus: The first one is located in the Sequencer's panel and provides Buttons to create compositor strips, which are newly created scenes with a prebuilt node setup, from existing video or image strips in the timeline and to jump to the compositor in order to edit the created compositions. The second menu is located in the node compositor panel. It provides buttons to return to the video editing view and to open a compositor strip from the sequencer timeline. 
+<p><b>Usage:</b> The addon's interface provides two menus: The first one is located in the Sequencer's SunTools panel and provides Buttons to create compositor strips, which are newly created scenes with a prebuilt node setup, from existing video or image strips in the timeline and to jump to the compositor in order to edit the created compositions. The second menu is located in the node compositor panel. It provides buttons to return to the video editing view and to open a compositor strip from the sequencer timeline.
 The Addon is designed for two different workflows:
 
 <ul>
@@ -74,7 +74,7 @@ The Addon is designed for two different workflows:
 There is a checkbox to activate a high-bit-depth fix in the sequencer panel. If it is activated, prior to rendering each frame, the video input nodes in the compositions will be replaced by a framegrab rendered by ffmpeg.
 This way, blender uses the video's full color information. Without the workaround, blender will only decode the video with 8 bit, implying severe loss of color information especially when working with 10-bit log footage.
 
-It is recommended to disable the OpenGL preview in the sequence viewer so that live preview for composite scripts is provided in the sequencer.
+It is recommended to use the "rendered" preview method in the sequence viewer so that live preview for composite scripts is provided in the sequencer.
 </p>
 
 
