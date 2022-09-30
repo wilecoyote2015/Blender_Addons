@@ -24,6 +24,15 @@
 <h1>
 <a id="news" class="anchor" href="#news" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>News</h1>
  <table style="width:100%">
+     <tr>
+    <th>Date</th>
+    <th>News</th>
+  </tr>
+  <tr>
+    <td><i>30 Sep 2022</i></td>
+    <td> Updated and removed some old components. Added Darktable interaction features.
+    </td>
+  </tr>
   <tr>
     <th>Date</th>
     <th>News</th>
@@ -68,11 +77,9 @@ This way, blender uses the video's full color information. Without the workaroun
 It is recommended to disable the OpenGL preview in the sequence viewer so that live preview for composite scripts is provided in the sequencer.
 </p>
 
-<h1>
-<a id="sun-tools" class="anchor" href="#sun-tools" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Sun Tools</h1>
 
-<h2>
-<a id="movie-manager" class="anchor" href="#movie-manager" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Movie Manager</h2>
+<h1>
+<a id="movie-manager" class="anchor" href="#movie-manager" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Movie Manager</h1>
         <p>Dedicated NLEs provide a way to manage your video material before adding the clips to the timeline. Blender does not allow this, but using the SunTools Movie Manager Addon you are able to view and trim your clips before adding them and you can even sort out clips that are not usable by hiding them in the file manager.</p>
     <p>It works with one Blender Window but is actually designed to be used with a dual monitor setup: Duplicate the Window in Blender's info header so that you end up with two windows, each showing your timeline setup. Now, it is important to set the scene you want to insert the strips into (your actual timeline) using the 'Set as Timeline' operator in the sequencer's "Movie Manager" panel section. You will notice that the other operators in the Panel disappear. This is intended: Those operators are meant to be used in other scenes that are NOT the timeline, in order to insert the pretrimmed strips into the timeline. </p> 
 	 
@@ -82,8 +89,8 @@ It is recommended to disable the OpenGL preview in the sequence viewer so that l
     <p> You can select your favorite screen layouts to switch to for range and timeline editing by inserting the layout's name into the appropriate fields.</p>
         <p>You can create proxies of the selected resolutions of all clips in the folder shown in a file browser area by using the Create Proxies operator in the File Browser. This way, you don't have to add all movies to the sequencer in order to create proxies. You can create proxies for all files in your folder at once. <b>Please Note: Blender will freeze until all proxies have been created! This is normal.</b></p>
         <!--<p>In order to make sorting of clips easier, tick the Good checkbox when in a range editing scene. After having viewed and pretrimmed all clips for your project, use the hide operator to hide all files in the file browser which are not marked as good.</p> -->
-<h2>
-<a id="trimtools" class="anchor" href="#trimtools" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TrimTools</h2>
+<h1>
+<a id="trimtools" class="anchor" href="#trimtools" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>TrimTools</h1>
 
 <p>Trimming strips and navigating through the timeline is not really comfortable. For example there are many situations which demand for a way to move and trim clips quickly and precisely in relation to each other and to the playhead (for example if a clip should start exactly after the previous one ends).</p>
 
@@ -92,49 +99,15 @@ It enhances the efficiency of trimming and cutting clips in the timeline by prov
 You can also select a video strip and it's according audio strip simultaneously and use a snapping operator that works in analogy to the Blender's one, moves the strip so that it's endpoint matched the playhead, not it's starting point.</p>
 
 <h1>
-<a id="highpass" class="anchor" href="#highpass" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Highpass</h1>
-	  
-	  <i>Please Note: The addon is not compatible with Blender 2.80 (yet).</i>
+<a id="darktable" class="anchor" href="#darktable" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Darktable</h1>
+        <p>
+            This part of the addon integrates the Open Source raw photo editor <a href="https://www.darktable.org">Darktable</a> for color correction.
+            In the corresponding section of the SunTools sequence editor Panel, activate "Use Darktable for Strip" when a movie strip is active.
+            Then, click "Edit with Darktable". Darktable will be opened with the current frame of the selected strip. Make any adjustments here and close Darktable afterwards.
+            If "Render with Darktable" is activated, darktable will be called on each strip during rendering and apply the associated edits to the whole strip, so that the final render will show the processed version of your videos.
+        </p>
+        <p>darktable, darktable-cli and ffmpeg must be in your path for the plugin to work.</p>
 
-<p>Blender has got a great tracking tool, which can also be used to compensate unwanted camera movements. A common use case is represented by the intention to make a shaky handheld video look stable.
-Though if you try to deshake a video you will encounter the Problem that the algorithm compensates all camera movement. This is fine if you are going to stabilize a steady shot like it is shown in the tutorial above, but in most cases there is some intended movement like a camera pan that should be preserved while annoying jittering needs to be removed.</p>
-
-<p>To make this kind of selective video stabilization possible I have written a small addon which applies a rudimentary highpass filter to a selected tracking marker. After the filter is applied, only the fast, jittering moves are represented by the marker so that you can use it to get much better stabilization results!</p>
-
-<p>Using the addon is very simple:
-Find a good feature and track it, just like in the tutorial.
-When you have done this, select the marker and use the addon whose UI is located on the bottom of the Clip Editor's tool panel.</p>
-
-<p>The numeric value represents the range of frames over which the motion is smoothed. A higher value makes slower motions being stabilized, too. Usually a value between 5 and 15 gives good results.
-The Apply operator filters the selected marker in the scene's frame range (the start and end frame that are found in the timeline window's header).
-Please make sure that the marker is tracked/keyframed for every frame in that range; otherwise the addon will fail.</p>
-
-<p>Now a second trackpoint is created. Simply use it for 2d stabilization instead of the original track.
-You can also repeat the procedure for a second track point and use it for rotation stabilization!</p>
-
-<h1>
-<a id="natronizer" class="anchor" href="#natronizer" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Natronizer</h1>
-	  
-	  <i>Please Note: The addon is not compatible with Blender 2.80 (yet).</i>
-
-<p>Because it is my favorite application for editing Videos, but the internal (quite powerful) Node compositor is too slow for Visual Effects Work and complex color grading, I have decided to use Natron for that and thus try to integrate it into the Blender editing workflow.</p>
-
-<p>It works in a similiar way as the edit Strip with Blender compositor Addon:
-You will find a new Section in the Sequencer panel w named "Natronizer". Make sure to enter the correct Paths to your Natron and NatronRenderer executables.</p>
-
-<ul>
-<li>Clicking in Natronize will create an Imagestrip, which is associated with a natron Project, above every selected movie Strip. Natron will open and then close immediately when the Natronize Button is pressed. The reason behind this is that Natron is only started to setup the Natron project for the strip. As soon as that is done Natron is closed and the new Imagesequence Strip should appear in the Blender Timeline.
-The Edit Button opens Natron for editing the Project.</li>
-<li>If one of those Imagestrips is selected, the "Edit" Button opens a new Natron window where you can edit the composition. Save the Project to apply the changes.</li>
-<li>The render Preview button will render all selected Natron associated Image Strips so that get a preview of the Strips in the Blender Sequencer.</li>
-<li>If the live preview checkbox is activated, natron Image Strips will be rendered for the current frame on framechange. That means that means that, even without having used the render Preview button, the Natron Image Strips will show the composition Result from Natron. There is also an intelligent Caching system: Frames are only re-rendered if the natron Project got changed and otherwise already rendered Frames are used. So if the Checkbox is activated, also Frames of already rendered Strips via render Preview won't be rendered again so you get smooth playback wherever it is possible.
-When the Project is rendered, all Natron Image Srips are Prerendered before the the actual rendering starts.</li>
-</ul>
-
-<p>You may enter a Natron plugin ID into the custom Plugin box. That plugin will be inserted into a new Composition which is created by the Natronize operator.
-Leave the field Blank to disable this.</p>
-
-<p>Please notice: While frames or strips are rendered (either using the render Preview Button, before Rendering or with live Preview) Blender will freeze until the rendering is finished. This is not an error. To track the rendering progress, start Blender from console where Natron outputs its messages.</p>
 
 <h1>
 <a id="support-verysharp" class="anchor" href="#support-verysharp" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Support this collection</h1>
