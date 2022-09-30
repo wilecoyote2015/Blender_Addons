@@ -26,7 +26,7 @@ from bpy.props import (IntProperty,
                     EnumProperty
                        )
 import bpy
-from SunTools.common_functions import toggle_composition_visibility
+from .common_functions import toggle_composition_visibility
 
 
 class ESWC_Info(bpy.types.PropertyGroup):

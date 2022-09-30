@@ -21,7 +21,7 @@
 
 import bpy
 import os
-from SunTools.common_functions import get_masterscene, detect_strip_type
+from .common_functions import get_masterscene, detect_strip_type
 
 class OperatorSetTimeline (bpy.types.Operator):
     bl_idname = "sequencer.moviemanager_set_timeline"

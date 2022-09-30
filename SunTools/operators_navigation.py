@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from SunTools import common_functions
+from . import common_functions
 import bpy
 
 

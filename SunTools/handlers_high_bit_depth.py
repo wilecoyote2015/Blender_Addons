@@ -8,7 +8,7 @@ import bpy
 import subprocess
 from bpy.app.handlers import persistent
 import os
-from SunTools.common_functions import render_current_frame_strip_to_image, check_sequence_current_darktable
+from .common_functions import render_current_frame_strip_to_image, check_sequence_current_darktable
 from tempfile import TemporaryDirectory
 from shutil import copyfile
 

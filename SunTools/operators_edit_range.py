@@ -16,7 +16,7 @@
 #
 # ##### END GPL LICENSE BLOCK #####
 
-from SunTools.common_functions import get_masterscene, detect_strip_type, switch_workspace, insert_clip, avail_screens
+from .common_functions import get_masterscene, detect_strip_type, switch_workspace, insert_clip, avail_screens
 import bpy
 import json
 import os

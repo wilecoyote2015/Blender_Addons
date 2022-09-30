@@ -18,25 +18,25 @@
 
 import bpy
 
-from SunTools.operators_edit_range import (
+from .operators_edit_range import (
     OperatorEditRange,
     OperatorBackToTimeline,
     OperatorInsertStripIntoMasterscene
 )
-from SunTools.operators_movie_manager import (
+from .operators_movie_manager import (
     OperatorSetTimeline,
     # OperatorHideSequences,
     OperatorCreateProxies,
     OperatorUnmeta
 )
-from SunTools.operators_trim_tools import (
+from .operators_trim_tools import (
     OperatorSelectCurrent,
     OperatorCutCurrent,
     OperatorTrimLeft,
     OperatorTrimRight,
     OperatorSnapEnd
 )
-from SunTools.ui_panels import (
+from .ui_panels import (
     PanelMovieManagerBrowser,
     PanelMovieManager,
     PanelTrimTools,
@@ -44,20 +44,20 @@ from SunTools.ui_panels import (
     CompPanel,
     PanelDarktable
 )
-from SunTools.handlers_high_bit_depth import register_handlers, unregister_handlers
-from SunTools.operator_composition import OperatorCreateCompositionFromStrip
-from SunTools.operators_navigation import (
+from .handlers_high_bit_depth import register_handlers, unregister_handlers
+from .operator_composition import OperatorCreateCompositionFromStrip
+from .operators_navigation import (
     Switch_back_to_Timeline_Operator,
     Switch_to_Composite_Nodepanel_Operator,
     Switch_to_Composite_Operator
 )
-from SunTools.operators_darktable import (
+from .operators_darktable import (
     OperatorOpenDarktable,
     OperatorCopyDarktableStyle,
     OperatorLoadXmpDarktable,
     OperatorSaveXmpDarktable,
 )
-from SunTools.scene_types import SunToolsInfo, ESWC_Info
+from .scene_types import SunToolsInfo, ESWC_Info
 
 bl_info = {
     "name": "SunTools",

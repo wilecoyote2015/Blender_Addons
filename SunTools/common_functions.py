@@ -18,7 +18,7 @@
 
 import bpy
 import os
-from SunTools.constants import *
+from .constants import *
 from subprocess import run
 
 # TODO: cleanup Suntools Comp VSE Merge
