@@ -30,6 +30,11 @@ import os
 # TODO: handle relative / absolute file paths correctly, so that ranges saved in the text files
 #   keep the correct reference even when moving the project
 
+# TODO: use common_functions.set_scene_fps_to_clip_fps
+#    to set range scene fps to clip source fps
+#   and verify that range frames are still correct then.
+
+
 NAME_RANGESCENE = 'SunTools_Edit_Range'
 
 class OperatorEditRange(bpy.types.Operator):
@@ -126,7 +131,7 @@ class OperatorEditRange(bpy.types.Operator):
 
         # enter the scene
         context.window.scene = scene_range
-        
+
         # if custom layout wanted, switch layout
         switch_workspace(masterscene.suntools_info.range_screen)
         
@@ -185,7 +190,7 @@ class OperatorEditRange(bpy.types.Operator):
                 strip_new.frame_final_start = range['frame_final_start']
                 strip_new.frame_final_end = range['frame_final_end']
                 strip_new.channel = channel
-        
+
     def insert_clip(self, scene, path_source, strip_type, name):
         masterscene = get_masterscene()
         strips_new = insert_clip(scene, path_source, strip_type, name, 0, 1,

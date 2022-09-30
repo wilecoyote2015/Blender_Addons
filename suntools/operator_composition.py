@@ -55,10 +55,7 @@ class OperatorCreateCompositionFromStrip(bpy.types.Operator):
         # set render resolution to full so that scaling is done in sequencer
         new_scene.render.resolution_percentage = 100
 
-        if original_strip.type in ('MOVIE', 'MOVIECLIP'):
-            print(original_strip.fps)
-            new_scene.render.fps_base = int(round(original_strip.fps)) / original_strip.fps
-            new_scene.render.fps = int(round(original_strip.fps))
+        common_functions.set_scene_fps_to_clip_fps(original_strip, new_scene)
 
         # Setup new scene EndFrame to match original_strip length
         new_scene.frame_end = int(original_strip.frame_final_duration + original_strip.frame_offset_start + original_strip.frame_offset_end)

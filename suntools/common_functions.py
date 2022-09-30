@@ -23,6 +23,11 @@ from subprocess import run
 
 # TODO: cleanup Suntools Comp VSE Merge
 
+def set_scene_fps_to_clip_fps(scene, strip):
+    if strip.type in ('MOVIE', 'MOVIECLIP'):
+        scene.render.fps_base = int(round(strip.fps)) / strip.fps
+        scene.render.fps = int(round(strip.fps))
+
 def check_sequence_current_darktable(strip, scene):
     # TODO: correct boundaries?
     has_playhead =  scene.frame_current >= strip.frame_final_start and scene.frame_current <= strip.frame_final_end
