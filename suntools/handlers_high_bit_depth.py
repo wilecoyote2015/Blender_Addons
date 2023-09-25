@@ -43,11 +43,14 @@ def apply_darktable_sequence(sequence, scene):
             path_image_raw,
             path_xmp,
             path_image_darktable,
-            '--core',
-            '--disable-opencl',
             # '--icc-type',
             # 'ADOBERGB'
         ]
+        if scene.suntools_info.disable_opencl_datktable:
+            cmd.extend([
+            '--core',
+            '--disable-opencl',
+            ])
         print(f'Processing image {path_image_raw} with darktable. Output: {path_image_darktable}')
         subprocess.run(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 

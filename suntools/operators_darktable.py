@@ -52,6 +52,9 @@ class OperatorOpenDarktable(bpy.types.Operator):
         # render the current frame of selected strip via FFMPEG
         current_strip = bpy.context.scene.sequence_editor.active_strip
         with TemporaryDirectory() as path_tempdir:
+            # TODO: tiff output is 16 bit if input video is 10 bit.
+            #   however, it may be appropriate to always force 16 bit output
+            #   in case that ffmpeg's default behavior changes.
             filename_output = f'{current_strip.name}.tiff'
             path_output = str(os.path.join(path_tempdir, filename_output))
             render_current_frame_strip_to_image(current_strip, bpy.context.scene, path_output)

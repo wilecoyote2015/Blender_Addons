@@ -234,3 +234,9 @@ class SunToolsInfo(bpy.types.PropertyGroup):
         description='Whether to render Strips edited with darktable with darktable. darktable-cli and ffmpeg must be in your PATH.',
         default=False
     )
+
+    disable_opencl_datktable: BoolProperty(
+        name='Darktabe: Disable OpenCL',
+        description='If active, OpenCL is deactivated for Darktable.',
+        default=False
+    )
