@@ -23,6 +23,9 @@ from subprocess import run
 
 # TODO: cleanup Suntools Comp VSE Merge
 
+def get_preferences(context):
+    return context.preferences.addons[__package__].preferences
+
 def set_scene_fps_to_clip_fps(scene, strip):
     if strip.type in ('MOVIE', 'MOVIECLIP'):
         scene.render.fps_base = int(round(strip.fps)) / strip.fps

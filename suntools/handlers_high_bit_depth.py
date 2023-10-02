@@ -8,13 +8,14 @@ import bpy
 import subprocess
 from bpy.app.handlers import persistent
 import os
-from .common_functions import render_current_frame_strip_to_image, check_sequence_current_darktable
+from .common_functions import render_current_frame_strip_to_image, check_sequence_current_darktable, get_preferences
 from tempfile import TemporaryDirectory
-from shutil import copyfile
 
 # todo: delete frames post render
 
 def apply_darktable_sequence(sequence, scene):
+    preferences = get_preferences(bpy.context)
+
     sequence.source_darktable = sequence.filepath
     sequence.frame_final_start_darktable = sequence.frame_final_start
     sequence.frame_final_end_darktable = sequence.frame_final_end
@@ -39,14 +40,14 @@ def apply_darktable_sequence(sequence, scene):
 
         # TODO: use wide-gamut color space that is also supported in blender out of the box...
         cmd = [
-            'darktable-cli',
+            preferences.command_darktable_cli,
             path_image_raw,
             path_xmp,
             path_image_darktable,
             # '--icc-type',
             # 'ADOBERGB'
         ]
-        if scene.suntools_info.disable_opencl_datktable:
+        if preferences.darktable_disable_opencl_render:
             cmd.extend([
             '--core',
             '--disable-opencl',
@@ -55,7 +56,6 @@ def apply_darktable_sequence(sequence, scene):
         subprocess.run(cmd, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
         subprocess.run(['ls', path_tempdir])
-        # TODO: convert via FFMPEG to Video
 
         path_video_darktable_persistent = os.path.join(bpy.app.tempdir, filename_output_darktable_video)
         print(f'Converting image {path_image_darktable} to video {path_video_darktable_persistent}')

@@ -20,7 +20,7 @@ import bpy
 import os
 from subprocess import run
 from tempfile import TemporaryDirectory
-from .common_functions import render_current_frame_strip_to_image
+from .common_functions import render_current_frame_strip_to_image, get_preferences
 from bpy_extras.io_utils import ExportHelper, ImportHelper
 
 # TODO: Support loading / saving xmp files per strip.
@@ -50,6 +50,7 @@ class OperatorOpenDarktable(bpy.types.Operator):
 
     def invoke(self, context, event ):
         # render the current frame of selected strip via FFMPEG
+        preferences = get_preferences(context)
         current_strip = bpy.context.scene.sequence_editor.active_strip
         with TemporaryDirectory() as path_tempdir:
             # TODO: tiff output is 16 bit if input video is 10 bit.
@@ -66,7 +67,7 @@ class OperatorOpenDarktable(bpy.types.Operator):
                     f.write(current_strip.xmp_darktable)
 
             cmd = [
-                'darktable',
+                preferences.command_darktable,
                 path_output
             ]
 

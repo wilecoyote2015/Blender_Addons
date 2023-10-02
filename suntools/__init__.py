@@ -44,6 +44,7 @@ from .ui_panels import (
     CompPanel,
     PanelDarktable
 )
+from .addon_preferences import SuntoolsAddonPreferences
 from .handlers_high_bit_depth import register_handlers, unregister_handlers
 from .operator_composition import OperatorCreateCompositionFromStrip
 from .operators_navigation import (
@@ -101,7 +102,8 @@ classes = (
     OperatorOpenDarktable,
     OperatorLoadXmpDarktable,
     OperatorSaveXmpDarktable,
-    OperatorCopyDarktableStyle
+    OperatorCopyDarktableStyle,
+    SuntoolsAddonPreferences,
 )
 
 register_classes, unregister_classes = bpy.utils.register_classes_factory(classes)

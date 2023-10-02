@@ -60,9 +60,6 @@ class PanelDarktable(bpy.types.Panel):
         row = layout.row()
         row.prop(scn.suntools_info, 'render_darktable')
 
-        row = layout.row()
-        row.prop(scn.suntools_info, 'disable_opencl_datktable')
-
         if activestrip.type == 'MOVIE':
             row = layout.row()
 
