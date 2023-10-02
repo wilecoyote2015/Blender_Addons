@@ -13,6 +13,8 @@ from tempfile import TemporaryDirectory
 
 # todo: delete frames post render
 
+# TODO: fix some strips rendered with darktable are corrupted with wron start and end times after render
+
 def apply_darktable_sequence(sequence, scene):
     preferences = get_preferences(bpy.context)
 
@@ -59,6 +61,8 @@ def apply_darktable_sequence(sequence, scene):
 
         path_video_darktable_persistent = os.path.join(bpy.app.tempdir, filename_output_darktable_video)
         print(f'Converting image {path_image_darktable} to video {path_video_darktable_persistent}')
+        # TODO: use faster to encode format than x264. However, it still has to support various image sizes
+        #   and must be lossless.
         cmd = [
             'ffmpeg',
             '-i',
@@ -187,6 +191,7 @@ def check_node_has_movie(node):
     return False
 
 def insert_framegrab_for_input(scene, node):
+    # TODO: for rendering framegrab, use same ffmpeg logic as with darktable
     # todo: mute the node? No, because outputs other than image might be needed.
 
     # render current frame of video file as 16 bit tiff
